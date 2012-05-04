@@ -8,23 +8,16 @@
 ;(function(window, undefined) {
   'use strict';
 
-  /** Used to escape and unescape characters in templates */
+  /** Used to escape characters in templates */
   var escapes = {
     '\\': '\\',
     "'": "'",
-    'r': '\r',
-    'n': '\n',
-    't': '\t',
-    'u2028': '\u2028',
-    'u2029': '\u2029'
+    '\n': 'n',
+    '\r': 'r',
+    '\t': 't',
+    '\u2028': 'u2028',
+    '\u2029': 'u2029'
   };
-
-  // assign the result as keys and the keys as values
-  (function() {
-    for (var prop in escapes) {
-      escapes[escapes[prop]] = prop;
-    }
-  }());
 
   /** Detect free variable `exports` */
   var freeExports = typeof exports == 'object' && exports &&
@@ -36,18 +29,20 @@
   /** Used to restore the original `_` reference in `noConflict` */
   var oldDash = window._;
 
-  /** Used to replace unescape characters with their escaped counterpart */
-  var reEscaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+  /** Used to match tokens in template text */
+  var reToken = /__token__(\d+)/g;
 
   /**
-   * Used for `templateSettings` properties such as `escape`, `evaluate`,
-   * or `interpolate` with explicitly assigned falsey values to ensure no match
-   * is made.
+   * Used to match unescaped characters in template text
+   * (older Safari can't parse unicode escape sequences in a RegExp literals)
    */
-  var reNoMatch = /.^/;
+  var reUnescaped = RegExp('\\\\|[\'\\n\\r\\t\u2028\u2029]', 'g');
 
-  /** Used to replace escaped characters with their unescaped counterpart */
-  var reUnescaper = /\\(\\|'|r|n|t|u2028|u2029)/g;
+  /** Used to replace template delimiters */
+  var token = '__token__';
+
+  /** Used store tokenized template text code snippets */
+  var tokenized = [];
 
   /** Object#toString result shortcuts */
   var arrayClass = '[object Array]',
@@ -65,6 +60,7 @@
   /** Native method shortcuts */
   var concat = ArrayProto.concat,
       hasOwnProperty = ObjProto.hasOwnProperty,
+      join = ArrayProto.join,
       push = ArrayProto.push,
       slice = ArrayProto.slice,
       toString = ObjProto.toString;
@@ -119,9 +115,11 @@
 
   /** Compilation options for `_.map` */
   var mapFactoryOptions = {
-    'init': '[]',
+    'init': '',
+    'exit': 'if (!collection) return []',
     'beforeLoop': {
-      'array': 'result=Array(length)'
+      'array': 'result = Array(length)',
+      'object': 'result = []'
     },
     'inLoop': {
       'array': 'result[index] = callback(collection[index], index, collection)',
@@ -153,6 +151,7 @@
    * The `lodash` function.
    *
    * @name _
+   * @constructor
    * @param {Mixed} value The value to wrap in a `Lodash` instance.
    * @returns {Object} Returns a `Lodash` instance.
    */
@@ -190,12 +189,12 @@
    * _.isArray([1, 2, 3]);
    * // => true
    */
-  var isArray = nativeIsArray || function isArray(value) {
+  var isArray = nativeIsArray || function(value) {
     return toString.call(value) == arrayClass;
   };
 
   /**
-   * Checks if a `value` is empty. Arrays or strings with a length of 0 and
+   * Checks if a `value` is empty. Arrays or strings with a length of `0` and
    * objects with no enumerable own properties are considered "empty".
    *
    * @static
@@ -222,6 +221,30 @@
   });
 
   /*--------------------------------------------------------------------------*/
+
+  /**
+   * Used by `template()` to replace tokens with their corresponding code snippets.
+   *
+   * @private
+   * @param {String} match The matched token.
+   * @param {String} index The `tokenized` index of the code snippet.
+   * @returns {String} Returns the code snippet.
+   */
+  function detokenize(match, index) {
+    return tokenized[index];
+  }
+
+  /**
+   * Used by `template()` to escape characters for inclusion in compiled
+   * string literals.
+   *
+   * @private
+   * @param {String} match The matched character to escape.
+   * @returns {String} Returns the escaped character.
+   */
+  function escapeChar(match) {
+    return '\\' + escapes[match];
+  }
 
   /**
    * Compiles iteration functions.
@@ -263,7 +286,7 @@
         objectBranch = !(firstArg == 'array' || iterate == 'arrays'),
         useHas = options.useHas !== false;
 
-    // stings used to compile methods are minified during the build process
+    // all strings used to compile methods are minified during the build process
     return Function('arrayClass, bind, concat, funcClass, hasOwnProperty, identity,' +
                     'indexOf, Infinity, isArray, isEmpty, Math, slice, stringClass,' +
                     'toString, undefined',
@@ -273,8 +296,8 @@
       'return function(' + args + ') {\n' +
         // assign the `result` variable an initial value
         ('var index, result' + (init ? '=' + init : '')) + ';\n' +
-        // add code to exit early or do so if the first argument is nullish
-        (options.exit || 'if (' + firstArg + ' == undefined) return result') + ';\n' +
+        // add code to exit early or do so if the first argument is falsey
+        (options.exit || 'if (!' + firstArg + ') return result') + ';\n' +
         // add code after the exit snippet but before the iteration branches
         (options.top || '') + ';\n' +
         // the following branch is for iterating arrays and array-like objects
@@ -323,18 +346,45 @@
   }
 
   /**
-   * Unescapes characters, previously escaped for inclusion in compiled string
-   * literals, so they may compiled into function bodies.
-   * (Used for template interpolation, evaluation, or escaping)
+   * Used by `template()` to replace "escape" template delimiters with tokens.
    *
    * @private
-   * @param {String} string The string to unescape.
-   * @returns {String} Returns the unescaped string.
+   * @param {String} match The matched template delimiter.
+   * @param {String} value The delimiter value.
+   * @returns {String} Returns a token.
    */
-  function unescape(string) {
-    return string.replace(reUnescaper, function(match, escaped) {
-      return escapes[escaped];
-    });
+  function tokenizeEscape(match, value) {
+    var index = tokenized.length;
+    tokenized[index] = "'+\n((__t = (" + value + ")) == null ? '' : __e(__t)) +\n'";
+    return token + index;
+  }
+
+  /**
+   * Used by `template()` to replace "interpolate" template delimiters with tokens.
+   *
+   * @private
+   * @param {String} match The matched template delimiter.
+   * @param {String} value The delimiter value.
+   * @returns {String} Returns a token.
+   */
+  function tokenizeInterpolate(match, value) {
+    var index = tokenized.length;
+    tokenized[index] = "'+\n((__t = (" + value + ")) == null ? '' : __t) +\n'";
+    return token + index;
+  }
+
+  /**
+   * Used by `template()` to replace "evaluate" template delimiters with tokens.
+   *
+   * @private
+   * @param {String} match The matched template delimiter.
+   * @param {String} value The delimiter value.
+   * @returns {String} Returns a token.
+   */
+  function tokenizeEvaluate(match, value) {
+    var index = tokenized.length;
+    tokenized[index] = "';\n" + value + ";\n__p += '";
+    return token + index;
   }
 
   /*--------------------------------------------------------------------------*/
@@ -362,9 +412,9 @@
   });
 
   /**
-   * Checks if the `callback` returns truthy for **all** values of a `collection`.
-   * The `callback` is invoked with 3 arguments; for arrays they are
-   * (value, index, array) and for objects they are (value, key, object).
+   * Checks if the `callback` returns a truthy value for **all** elements of a
+   * `collection`. The `callback` is invoked with 3 arguments; for arrays they
+   * are (value, index, array) and for objects they are (value, key, object).
    *
    * @static
    * @memberOf _
@@ -613,18 +663,18 @@
     'args': 'collection, callback, accumulator, thisArg',
     'init': 'accumulator',
     'top':
-      'var initial = arguments.length > 2;\n' +
+      'var noaccum = arguments.length < 3;\n' +
       'if (thisArg) callback = bind(callback, thisArg)',
     'beforeLoop': {
-      'array': 'if (!initial) result = collection[++index]'
+      'array': 'if (noaccum) result = collection[++index]'
     },
     'inLoop': {
       'array':
         'result = callback(result, collection[index], index, collection)',
       'object':
-        'result = initial\n' +
-          '? callback(result, collection[index], index, collection)\n' +
-          ': (initial = true, collection[index])'
+        'result = noaccum\n' +
+          '? (noaccum = false, collection[index])\n' +
+          ': callback(result, collection[index], index, collection)'
     }
   });
 
@@ -649,39 +699,39 @@
    * var flat = _.reduceRight(list, function(a, b) { return a.concat(b); }, []);
    * // => [4, 5, 2, 3, 0, 1]
    */
-  function reduceRight(collection, callback, result, thisArg) {
-    if (collection == undefined) {
-      return result;
+  function reduceRight(collection, callback, accumulator, thisArg) {
+    if (!collection) {
+      return accumulator;
     }
 
-    var initial = arguments.length > 2,
-        length = collection.length;
+    var length = collection.length,
+        noaccum = arguments.length < 3;
 
     if(thisArg) {
       callback = bind(callback, thisArg);
     }
     if (length === +length) {
-      if (length && !initial) {
-        result = collection[--length];
+      if (length && noaccum) {
+        accumulator = collection[--length];
       }
       while (length--) {
-        result = callback(result, collection[length], length, collection);
+        accumulator = callback(accumulator, collection[length], length, collection);
       }
-      return result;
+      return accumulator;
     }
 
     var prop,
         props = keys(collection);
 
     length = props.length;
-    if (length && !initial) {
-      result = collection[props[--length]];
+    if (length && noaccum) {
+      accumulator = collection[props[--length]];
     }
     while (length--) {
       prop = props[length];
-      result = callback(result, collection[prop], prop, collection);
+      accumulator = callback(accumulator, collection[prop], prop, collection);
     }
-    return result;
+    return accumulator;
   }
 
   /**
@@ -705,32 +755,6 @@
   var reject = iterationFactory(forEachFactoryOptions, filterFactoryOptions, {
     'inLoop': '!' + filterFactoryOptions.inLoop
   });
-
-  /**
-   * Produces a new array of shuffled `collection` values, using a version of the
-   * Fisher-Yates shuffle. See http://en.wikipedia.org/wiki/Fisher-Yates_shuffle.
-   *
-   * @static
-   * @memberOf _
-   * @category Collections
-   * @param {Array|Object} collection The collection to shuffle.
-   * @returns {Array} Returns a new shuffled array.
-   * @example
-   *
-   * _.shuffle([1, 2, 3, 4, 5, 6]);
-   * // => [4, 1, 6, 3, 5, 2]
-   */
-  function shuffle(collection) {
-    var rand,
-        result = [];
-
-    forEach(collection, function(value, index) {
-      rand = Math.floor(Math.random() * (index + 1));
-      result[index] = result[rand];
-      result[rand] = value;
-    });
-    return result;
-  }
 
   /**
    * Gets the number of values in the `collection`.
@@ -799,11 +823,11 @@
   }
 
   /**
-   * Checks if the `callback` returns truthy for **any** value of a `collection`.
-   * The function returns as soon as it finds passing value, and does not iterate
-   * over the entire `collection`. The `callback` is invoked with 3 arguments; for
-   * arrays they are (value, index, array) and for objects they are
-   * (value, key, object).
+   * Checks if the `callback` returns a truthy value for **any** element of a
+   * `collection`. The function returns as soon as it finds passing value, and
+   * does not iterate over the entire `collection`. The `callback` is invoked
+   * with 3 arguments; for arrays they are (value, index, array) and for objects
+   * they are (value, key, object).
    *
    * @static
    * @memberOf _
@@ -822,45 +846,6 @@
     'init': 'false',
     'inLoop': everyFactoryOptions.inLoop.replace('!', '')
   });
-
-  /**
-   * Uses a binary search to determine the smallest  index at which the `value`
-   * should be inserted into the `collection` in order to maintain the sort order
-   * of the `collection`. If `callback` is passed, it will be executed for each
-   * value in the `collection` to compute their sort ranking. The `callback` is
-   * invoked with 1 argument.
-   *
-   * @static
-   * @memberOf _
-   * @category Collections
-   * @param {Array} array The array to iterate over.
-   * @param {Mixed} value The value to evaluate.
-   * @param {Function} [callback] The function called per iteration.
-   * @returns {Number} Returns the index at which the value should be inserted
-   *  into the collection.
-   * @example
-   *
-   * _.sortedIndex([10, 20, 30, 40, 50], 35);
-   * // => 3
-   */
-  function sortedIndex(array, value, callback) {
-    var mid,
-        low = 0,
-        high = array.length;
-
-    if (callback) {
-      value = callback(value);
-    }
-    while (low < high) {
-      mid = (low + high) >> 1;
-      if ((callback ? callback(array[mid]) : array[mid]) < value) {
-        low = mid + 1;
-      } else {
-        high = mid;
-      }
-    }
-    return low;
-  }
 
   /**
    * Converts the `collection`, into an array. Useful for converting the
@@ -1014,17 +999,19 @@
    */
   function flatten(array, shallow) {
     if (shallow) {
-      return concat.apply([], array);
+      return concat.apply(ArrayProto, array);
     }
-    var index = -1,
+    var value,
+        index = -1,
         length = array.length,
         result = [];
 
     while (++index < length) {
-      if (isArray(array[index])) {
-        push.apply(result, flatten(array[index]));
+      value = array[index];
+      if (isArray(value)) {
+        push.apply(result, flatten(value));
       } else {
-        result.push(array[index]);
+        result.push(value);
       }
     }
     return result;
@@ -1049,7 +1036,7 @@
    */
   function indexOf(array, value, isSorted) {
     var index, length;
-    if (array == undefined) {
+    if (!array) {
       return -1;
     }
     if (isSorted) {
@@ -1101,12 +1088,20 @@
    * // => [1, 2]
    */
   function intersection(array) {
-    var rest = slice.call(arguments, 1);
-    return filter(uniq(array), function(value) {
-      return every(rest, function(other) {
-        return indexOf(other, value) > -1;
-      });
-    });
+    var value,
+        index = -1,
+        length = array.length,
+        others = slice.call(arguments, 1),
+        result = [];
+
+    while (++index < length) {
+      value = array[index];
+      if (indexOf(result, value) < 0 &&
+          every(others, function(other) { return indexOf(other, value) > -1; })) {
+        result.push(value);
+      }
+    }
+    return result;
   }
 
   /**
@@ -1176,7 +1171,7 @@
    * // => 4
    */
   function lastIndexOf(array, value) {
-    if (array == undefined) {
+    if (!array) {
       return -1;
     }
     var index = array.length;
@@ -1258,6 +1253,73 @@
   }
 
   /**
+   * Produces a new array of shuffled `array` values, using a version of the
+   * Fisher-Yates shuffle. See http://en.wikipedia.org/wiki/Fisher-Yates_shuffle.
+   *
+   * @static
+   * @memberOf _
+   * @category Arrays
+   * @param {Array} array The array to shuffle.
+   * @returns {Array} Returns a new shuffled array.
+   * @example
+   *
+   * _.shuffle([1, 2, 3, 4, 5, 6]);
+   * // => [4, 1, 6, 3, 5, 2]
+   */
+  function shuffle(array) {
+    var rand,
+        index = -1,
+        length = array.length,
+        result = Array(length);
+
+    while (++index < length) {
+      rand = Math.floor(Math.random() * (index + 1));
+      result[index] = result[rand];
+      result[rand] = array[index];
+    }
+    return result;
+  }
+
+  /**
+   * Uses a binary search to determine the smallest  index at which the `value`
+   * should be inserted into the `collection` in order to maintain the sort order
+   * of the `collection`. If `callback` is passed, it will be executed for each
+   * value in the `collection` to compute their sort ranking. The `callback` is
+   * invoked with 1 argument; (value).
+   *
+   * @static
+   * @memberOf _
+   * @category Arrays
+   * @param {Array} array The array to iterate over.
+   * @param {Mixed} value The value to evaluate.
+   * @param {Function} [callback] The function called per iteration.
+   * @returns {Number} Returns the index at which the value should be inserted
+   *  into the collection.
+   * @example
+   *
+   * _.sortedIndex([10, 20, 30, 40, 50], 35);
+   * // => 3
+   */
+  function sortedIndex(array, value, callback) {
+    var mid,
+        low = 0,
+        high = array.length;
+
+    if (callback) {
+      value = callback(value);
+    }
+    while (low < high) {
+      mid = (low + high) >> 1;
+      if ((callback ? callback(array[mid]) : array[mid]) < value) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    return low;
+  }
+
+  /**
    * Computes the union of the passed-in arrays.
    *
    * @static
@@ -1323,7 +1385,7 @@
             : indexOf(seen, computed) < 0
           ) {
         seen.push(computed);
-        result.push(array[index])
+        result.push(array[index]);
       }
     }
     return result;
@@ -1420,30 +1482,58 @@
   /**
    * Creates a new function that, when called, invokes `func` with the `this`
    * binding of `thisArg` and prepends additional arguments to those passed to
-   * the bound function.
+   * the bound function. Lazy defined methods may be bound by passing the object
+   * they are bound to as `func` and the method name as `thisArg`.
    *
    * @static
    * @memberOf _
    * @category Functions
-   * @param {Function} func The function to bind.
-   * @param @param {Mixed} [thisArg] The `this` binding of `func`.
+   * @param {Function|Object} func The function to bind or the object the method belongs to.
+   * @param @param {Mixed} [thisArg] The `this` binding of `func` or the method name.
    * @param {Mixed} [arg1, arg2, ...] Arguments to prepend to those passed to the bound function.
    * @returns {Function} Returns the new bound function.
    * @example
    *
+   * // basic bind
    * var func = function(greeting) { return greeting + ': ' + this.name; };
    * func = _.bind(func, { 'name': 'moe' }, 'hi');
    * func();
    * // => 'hi: moe'
+   *
+   * // lazy bind
+   * var object = {
+   *   'name': 'moe',
+   *   'greet': function(greeting) {
+   *     return greeting + ': ' + this.name;
+   *   }
+   * };
+   *
+   * var func = _.bind(object, 'greet', 'hi');
+   * func();
+   * // => 'hi: moe'
+   *
+   * object.greet = function(greeting) {
+   *   return greeting + ' ' + this.name + '!';
+   * };
+   *
+   * func();
+   * // => 'hi moe!'
    */
   function bind(func, thisArg) {
     var args = slice.call(arguments, 2),
-        argsLength = args.length;
+        argsLength = args.length,
+        isFunc = toString.call(func) == funcClass;
 
+    // juggle arguments
+    if (!isFunc) {
+      var methodName = thisArg;
+      thisArg = func;
+    }
     return function() {
-      args.length = argsLength;
       push.apply(args, arguments);
-      return func.apply(thisArg, args);
+      var result = (isFunc ? func : thisArg[methodName]).apply(thisArg, args);
+      args.length = argsLength;
+      return result;
     };
   }
 
@@ -1516,16 +1606,16 @@
   }
 
   /**
-   * Creates a new function that will postpone its execution until after `wait`
-   * milliseconds have elapsed since the last time it was invoked. Pass `true`
-   * for `immediate` to cause debounce to invoke the function on the leading,
+   * Creates a new function that will delay the execution of `func` until after
+   * `wait` milliseconds have elapsed since the last time it was invoked. Pass
+   * `true` for `immediate` to cause debounce to invoke `func` on the leading,
    * instead of the trailing, edge of the `wait` timeout.
    *
    * @static
    * @memberOf _
    * @category Functions
    * @param {Function} func The function to debounce.
-   * @param {Number} wait The number of milliseconds to postone.
+   * @param {Number} wait The number of milliseconds to delay.
    * @param {Boolean} immediate A flag to indicate execution is on the leading
    *  edge of the timeout.
    * @returns {Function} Returns the new debounced function.
@@ -1535,27 +1625,36 @@
    * jQuery(window).on('resize', lazyLayout);
    */
   function debounce(func, wait, immediate) {
-    var timeout;
-    return function() {
-      var args = arguments,
-          thisArg = this;
+    var args,
+        result,
+        thisArg,
+        timeoutId;
 
-      if (immediate && !timeout) {
+    function delayed() {
+      timeoutId = undefined;
+      if (!immediate) {
         func.apply(thisArg, args);
       }
-      clearTimeout(timeout);
-      timeout = setTimeout(function() {
-        timeout = undefined;
-        if (!immediate) {
-          func.apply(thisArg, args);
-        }
-      }, wait);
+    }
+
+    return function() {
+      var isImmediate = immediate && !timeoutId;
+      args = arguments;
+      thisArg = this;
+
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(delayed, wait);
+
+      if (isImmediate) {
+        result = func.apply(thisArg, args);
+      }
+      return result;
     };
   }
 
   /**
-   * Invokes the `func` function after `wait` milliseconds. Additional arguments
-   * are passed `func` when it is invoked.
+   * Executes the `func` function after `wait` milliseconds. Additional arguments
+   * are passed to `func` when it is invoked.
    *
    * @static
    * @memberOf _
@@ -1576,7 +1675,7 @@
   }
 
   /**
-   * Defers invoking the `func` function until the current call stack has cleared.
+   * Defers executing the `func` function until the current call stack has cleared.
    * Additional arguments are passed to `func` when it is invoked.
    *
    * @static
@@ -1654,8 +1753,10 @@
   }
 
   /**
-   * Creates a new function that, when invoked, will only call the original
-   * function at most once per every `wait` milliseconds.
+   * Creates a new function that, when executed, will only call the `func`
+   * function at most once per every `wait` milliseconds. If the throttled function
+   * is invoked more than once, `func` will also be called on the trailing edge
+   * of the `wait` timeout.
    *
    * @static
    * @memberOf _
@@ -1669,29 +1770,32 @@
    * jQuery(window).on('scroll', throttled);
    */
   function throttle(func, wait) {
-    var args, more, result, thisArg, throttling, timeout,
-        whenDone = debounce(function() { more = throttling = false; }, wait);
+    var args,
+        result,
+        thisArg,
+        timeoutId,
+        lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = undefined;
+      func.apply(thisArg, args);
+    }
 
     return function() {
+      var now = new Date,
+          remain = wait - (now - lastCalled);
+
       args = arguments;
       thisArg = this;
 
-      if (!timeout) {
-        timeout = setTimeout(function() {
-          timeout = undefined;
-          if (more) {
-            func.apply(thisArg, args);
-          }
-          whenDone();
-        }, wait);
-      }
-      if (throttling) {
-        more = true;
-      } else {
+      if (remain <= 0) {
+        lastCalled = now;
         result = func.apply(thisArg, args);
       }
-      whenDone();
-      throttling = true;
+      else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remain);
+      }
       return result;
     };
   }
@@ -1824,8 +1928,8 @@
    * _.has({ 'a': 1, 'b': 2, 'c': 3 }, 'b');
    * // => true
    */
-  function has(object, prop) {
-    return hasOwnProperty.call(object, prop);
+  function has(object, property) {
+    return hasOwnProperty.call(object, property);
   }
 
   /**
@@ -1849,7 +1953,7 @@
   };
   // fallback for browser like IE<9 which detect `arguments` as `[object Object]`
   if (!isArguments(arguments)) {
-    isArguments = function isArguments(value) {
+    isArguments = function(value) {
       return !!(value && hasOwnProperty.call(value, 'callee'));
     };
   }
@@ -2268,7 +2372,7 @@
   function pick(object) {
     var prop,
         index = 0,
-        props = concat.apply([], arguments),
+        props = concat.apply(ArrayProto, arguments),
         length = props.length,
         result = {};
 
@@ -2311,7 +2415,7 @@
   /*--------------------------------------------------------------------------*/
 
   /**
-   * Escapes a string for insertion into HTML, replacing `&`, `<`, `>`, `"`, `'`,
+   * Escapes a string for insertion into HTML, replacing `&`, `<`, `"`, `'`,
    * and `/` characters.
    *
    * @static
@@ -2328,7 +2432,6 @@
     return (string + '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#x27;')
       .replace(/\//g,'&#x2F;');
@@ -2432,55 +2535,12 @@
    * // => 'nonsense'
    */
   function result(object, property) {
-    if (object == undefined) {
+    if (!object) {
       return null;
     }
     var value = object[property];
     return toString.call(value) == funcClass ? object[property]() : value;
   }
-
-  /**
-   * Executes the `callback` function `n` times.
-   *
-   * @static
-   * @memberOf _
-   * @category Utilities
-   * @param {Number} n The number of times to execute the callback.
-   * @param {Function} callback The function called per iteration.
-   * @param {Mixed} [thisArg] The `this` binding for the callback.
-   * @example
-   *
-   * _.times(3, function() { genie.grantWish(); });
-   */
-  function times(n, callback, thisArg) {
-    if (thisArg) {
-      callback = bind(callback, thisArg);
-    }
-    for (var index = 0; index < n; index++) {
-      callback(index);
-    }
-  }
-
-  /**
-   * Generates a unique id. If `prefix` is passed, the id will be appended to it.
-   *
-   * @static
-   * @memberOf _
-   * @category Utilities
-   * @param {String} [prefix] The value to prefix the id with.
-   * @returns {Number|String} Returns a numeric id if no prefix is passed, else
-   *  a string id may be returned.
-   * @example
-   *
-   * _.uniqueId('contact_');
-   * // => 'contact_104'
-   */
-  function uniqueId(prefix) {
-    var id = idCounter++;
-    return prefix ? prefix + id : id;
-  }
-
-  /*--------------------------------------------------------------------------*/
 
   /**
    * A JavaScript micro-templating method, similar to John Resig's implementation.
@@ -2537,45 +2597,93 @@
   function template(text, data, options) {
     options = defaults(options || {}, lodash.templateSettings);
 
-    // Compile the template source, taking care to escape characters that
-    // cannot be included in string literals and then unescape them in code
-    // blocks.
-    var source = "__p+='" + text
-      .replace(reEscaper, function(match) {
-        return '\\' + escapes[match];
-      })
-      .replace(options.escape || reNoMatch, function(match, code) {
-        return "'+\n((__t=(" + unescape(code) + "))==null?'':_.escape(__t))+\n'";
-      })
-      .replace(options.interpolate || reNoMatch, function(match, code) {
-        return "'+\n((__t=(" + unescape(code) + "))==null?'':__t)+\n'";
-      })
-      .replace(options.evaluate || reNoMatch, function(match, code) {
-        return "';\n" + unescape(code) + ";\n__p+='";
-      }) + "';\n";
+    var result,
+        reEscapeDelimiter = options.escape,
+        reEvaluateDelimiter = options.evaluate,
+        reInterpolateDelimiter = options.interpolate,
+        variable = options.variable;
 
-    // if a variable is not specified, place data values in local scope
-    if (!options.variable) {
-      source = 'with (object || {}) {\n' + source + '\n}\n';
+    // tokenize delimiters to avoid escaping them
+    if (reEscapeDelimiter) {
+      text = text.replace(reEscapeDelimiter, tokenizeEscape);
+    }
+    if (reInterpolateDelimiter) {
+      text = text.replace(reInterpolateDelimiter, tokenizeInterpolate);
+    }
+    if (reEvaluateDelimiter) {
+      text = text.replace(reEvaluateDelimiter, tokenizeEvaluate);
     }
 
-    source = 'var __t, __j = Array.prototype.join, __p = "";' +
+    // escape characters that cannot be included in string literals and
+    // detokenize delimiter code snippets
+    text = "__p='" + text.replace(reUnescaped, escapeChar).replace(reToken, detokenize) + "';\n";
+
+    // clear stored code snippets
+    tokenized.length = 0;
+
+    // if `options.variable` is not specified, add `data` to the top of the scope chain
+    if (!variable) {
+      text = 'with (object || {}) {\n' + text + '\n}\n';
+    }
+
+    text = 'function(' + (variable || 'object') + ') {\n' +
+      'var __p, __t;\n' +
       'function print() { __p += __j.call(arguments, "") }\n' +
-      source + 'return __p';
+      text +
+      'return __p\n}';
 
-    var render = Function(options.variable || 'object', '_', source);
+    result = Function('_, __e, __j', 'return ' + text)(lodash, escape, join);
+
     if (data) {
-      return render(data, lodash);
+      return result(data);
     }
+    // provide the compiled function's source via its `toString()` method, in
+    // supported environments, or the `source` property as a convenience for
+    // build time precompilation
+    result.source = text;
+    return result;
+  }
 
-    var template = function(data) {
-      return render.call(this, data, lodash);
-    };
+  /**
+   * Executes the `callback` function `n` times. The `callback` is invoked with
+   * 1 argument; (index).
+   *
+   * @static
+   * @memberOf _
+   * @category Utilities
+   * @param {Number} n The number of times to execute the callback.
+   * @param {Function} callback The function called per iteration.
+   * @param {Mixed} [thisArg] The `this` binding for the callback.
+   * @example
+   *
+   * _.times(3, function() { genie.grantWish(); });
+   */
+  function times(n, callback, thisArg) {
+    if (thisArg) {
+      callback = bind(callback, thisArg);
+    }
+    for (var index = 0; index < n; index++) {
+      callback(index);
+    }
+  }
 
-    // provide the compiled function source as a convenience for build time precompilation
-    template.source = 'function(' + (options.variable || 'object') + '){\n' + source + '\n}';
-
-    return template;
+  /**
+   * Generates a unique id. If `prefix` is passed, the id will be appended to it.
+   *
+   * @static
+   * @memberOf _
+   * @category Utilities
+   * @param {String} [prefix] The value to prefix the id with.
+   * @returns {Number|String} Returns a numeric id if no prefix is passed, else
+   *  a string id may be returned.
+   * @example
+   *
+   * _.uniqueId('contact_');
+   * // => 'contact_104'
+   */
+  function uniqueId(prefix) {
+    var id = idCounter++;
+    return prefix ? prefix + id : id;
   }
 
   /*--------------------------------------------------------------------------*/

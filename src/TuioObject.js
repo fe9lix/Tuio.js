@@ -1,0 +1,3 @@
+TUIO.Object = function() {
+
+}
