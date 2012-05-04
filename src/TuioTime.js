@@ -2,31 +2,16 @@ Tuio.Time = Tuio.Model.extend({
 	seconds: 0,
 	microSeconds: 0,
 
-	initialize: function(attributes) {
-		if (!attributes) {
-			this.seconds = 0;
-			this.microSeconds = 0;
-			return;
-		}
-		if (attributes.hasOwnProperty("msec")) {
-			this.seconds = Math.floor(attributes.msec / 1000);
-			this.microSeconds = 1000 * (attributes.msec % 1000);
-		}
-		if (attributes.hasOwnProperty("sec") && attributes.hasOwnProperty("usec")) {
-			this.seconds = attributes.sec;
-			this.microSeconds = attributes.usec;
-		}
-		if (attributes.hasOwnProperty("ttime")) {
-			this.seconds = ttime.getSeconds();
-			this.microSeconds = ttime.getMicroseconds();
-		}
+	initialize: function(sec, usec) {
+		this.seconds = sec || 0;
+		this.microSeconds = usec || 0;
 	},
 
 	add: function(us) {
-		return new Tuio.Time({
-			sec: this.seconds + Math.floor(us / 1000000),
-			usec: this.microSeconds + us % 1000000
-		});
+		return new Tuio.Time(
+			this.seconds + Math.floor(us / 1000000),
+			this.microSeconds + us % 1000000
+		);
 	},
 
 	addTime: function(ttime) {
@@ -35,10 +20,7 @@ Tuio.Time = Tuio.Model.extend({
 		sec += Math.floor(usec / 1000000);
 		usec = usec % 1000000;
 		
-		return new Tuio.Time({
-			sec: sec,
-			usec: usec
-		});
+		return new Tuio.Time(sec, usec);
 	},
 
 	subtract: function(us) {
@@ -50,10 +32,7 @@ Tuio.Time = Tuio.Model.extend({
 			sec--;
 		}	
 		
-		return new Tuio.Time({
-			sec: sec,
-			usec: usec
-		});
+		return new Tuio.Time(sec, usec);
 	},
 
 	subtractTime: function(ttime) {
@@ -65,14 +44,14 @@ Tuio.Time = Tuio.Model.extend({
 			sec--;
 		}
 		
-		return new Tuio.Time({
-			sec: sec,
-			usec: usec
-		});
+		return new Tuio.Time(sec, usec);
 	},
 
 	equals: function(ttime) {
-		return ((this.seconds === ttime.getSeconds()) && (this.microSeconds === ttime.getMicroseconds()));
+		return (
+			(this.seconds === ttime.getSeconds()) && 
+			(this.microSeconds === ttime.getMicroseconds())
+		);
 	},
 
 	reset: function() {
@@ -95,6 +74,20 @@ Tuio.Time = Tuio.Model.extend({
 	startSeconds: 0,
 	startMicroSeconds: 0,
 
+	fromMilliseconds: function(msec) {
+		return new Tuio.Time(
+			Math.floor(msec / 1000),
+			1000 * (msec % 1000)
+		);
+	},
+
+	fromTime: function(ttime) {
+		return new Tuio.Time(
+			ttime.getSeconds(),
+			ttime.getMicroseconds()
+		);
+	},
+
 	initSession: function() {
 		var startTime = Tuio.Time.getSystemTime();
 		Tuio.Time.startSeconds = startTime.getSeconds();
@@ -106,18 +99,18 @@ Tuio.Time = Tuio.Model.extend({
 	},
 
 	getStartTime: function() {
-		return new Tuio.Time({
-			sec: Tuio.Time.startSeconds,
-			usec: Tuio.Time.startMicroSeconds
-		});
+		return new Tuio.Time(
+			Tuio.Time.startSeconds, 
+			Tuio.Time.startMicroSeconds
+		);
 	},
 
 	getSystemTime: function() {
 		var usec = new Date().getTime() * 1000;
 
-		return new Tuio.Time({
-			sec: Math.floor(usec / 1000000),
-			usec: usec % 1000000
-		});
+		return new Tuio.Time(
+			Math.floor(usec / 1000000),
+			usec % 1000000
+		);
 	}
 });

@@ -11,10 +11,7 @@ $(document).ready(function() {
     });
 
     test("Time: constructor with sec and usec", function() {
-        var time = new Tuio.Time({
-            sec: 100,
-            usec: 100000
-        });
+        var time = new Tuio.Time(100, 100000);
 
         equal(time.getSeconds(), 100);
         equal(time.getMicroseconds(), 100000);
@@ -38,35 +35,23 @@ $(document).ready(function() {
     });
 
     test("Time: subtract time", function() {
-        var time = new Tuio.Time({
-            sec: 100,
-            usec: 5000
-        }),
-        newTime = time.subtractTime(new Tuio.Time({
-            sec: 20,
-            usec: 1000
-        }));
+        var time = new Tuio.Time(100, 5000),
+        newTime = time.subtractTime(new Tuio.Time(20, 1000));
         
         equal(newTime.getSeconds(), 80);
         equal(newTime.getMicroseconds(), 4000);
     });
 
     test("Time: equals", function() {
-        var time1 = new Tuio.Time({
-            msec: 2000
-        }),
-        time2 = new Tuio.Time({
-            msec: 2000
-        });
+        var time1 = new Tuio.Time.fromMilliseconds(2000),
+        time2 = new Tuio.Time.fromMilliseconds(2000);
         
         ok(time1.equals(time2));
         equal(time1.getTotalMilliseconds(), time2.getTotalMilliseconds());
     });
 
     test("Time: reset", function() {
-        var time = new Tuio.Time({
-            msec: 10000
-        });
+        var time = new Tuio.Time.fromMilliseconds(10000);
         time.reset();
         
         equal(time.getSeconds(), 0);
