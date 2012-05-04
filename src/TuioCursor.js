@@ -1,3 +1,3 @@
-TUIO.Cursor = function() {
+Tuio.Cursor = function() {
 
 }

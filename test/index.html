@@ -1,20 +1,17 @@
-<!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Tuio.js</title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width">
+  <meta charset="utf-8" />
+  <title>Tuio.js Tests</title>
+  <link rel="stylesheet" href="../libs/qunit/qunit.css" />
 </head>
 <body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="../libs/jquery-1.7.2.js"></script>
   <script src="../libs/lodash.js"></script>
+  <script src="../libs/qunit/qunit.js"></script>
   <script src="../src/Tuio.js"></script>
   <script src="../src/TuioTime.js"></script>
-  <script>
-    console.log(Tuio);
-    var tuioTime = new Tuio.Time();
-
-  </script>
+  <script src="TuioTime.js"></script>
 </body>
 </html>

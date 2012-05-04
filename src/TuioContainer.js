@@ -1,3 +1,3 @@
-TUIO.Container = function() {
+Tuio.Container = function() {
 
 }

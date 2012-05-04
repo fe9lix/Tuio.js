@@ -1,18 +1,11 @@
-TUIO.Point = function() {
-	var xPos = null,
-	yPos = null,
-	currentTime = null,
-	startTime = null,
+Tuio.Point = Tuio.Model.extend({
+	xPos: null,
+	yPos: null,
+	currentTime: null,
+	startTime: null,
 
-	init = function() {
-		xPos = 0;
-		yPos = 0;
-		
-	};
-
-	init();
-
-	return {
-
-	};
-};
+	initialize = function() {
+		this.xPos = 0;
+		this.yPos = 0;
+	}
+});

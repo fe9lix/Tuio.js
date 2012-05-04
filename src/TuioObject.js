@@ -1,3 +1,3 @@
-TUIO.Object = function() {
+Tuio.Object = function() {
 
 }

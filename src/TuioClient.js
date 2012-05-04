@@ -1,3 +1,3 @@
-TUIO.Client = function() {
+Tuio.Client = function() {
 	
 }
