@@ -16,12 +16,12 @@ Tuio.Point = Tuio.Model.extend({
 		this.yPos = yp;
 	},
 
-	updatePoint: function(tpoint) {
+	updateToPoint: function(tpoint) {
 		this.xPos = tpoint.getX();
 		this.yPos = tpoint.getY();
 	},
 
-	updateTimeAndPosition: function(ttime, xp, yp) {
+	updateToTimeAndPosition: function(ttime, xp, yp) {
 		this.xPos = xp;
 		this.yPos = yp;
 		this.currentTime = Tuio.Time.fromTime(ttime);
@@ -74,7 +74,7 @@ Tuio.Point = Tuio.Model.extend({
 		return Math.round(this.xPos * width);
 	},
 
-	getScreenX: function(height) {
+	getScreenY: function(height) {
 		return Math.round(this.yPos * height);
 	},
 
