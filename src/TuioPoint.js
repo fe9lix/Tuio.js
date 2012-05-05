@@ -4,10 +4,34 @@ Tuio.Point = Tuio.Model.extend({
 	currentTime: null,
 	startTime: null,
 
-	initialize: function(xp, yp) {
+	initialize: function() {
+		
+	},
+
+	initializeFromPosition: function(xp, yp) {
+		this.initializePoint(
+			Tuio.Time.getSessionTime(), 
+			xp,
+			yp
+		);
+	},
+
+	initializeFromPoint: function(tpoint) {
+		this.initializePoint(
+			Tuio.Time.getSessionTime(), 
+			tpoint.getX(), 
+			tpoint.getY()
+		);
+	},
+
+	initializeFromTime: function(ttime, xp, yp) {
+		this.initializePoint(ttime, xp, yp);
+	},
+
+	initializePoint: function(ttime, xp, yp) {
 		this.xPos = xp || 0;
 		this.yPos = yp || 0;
-		this.currentTime = Tuio.Time.getSessionTime();
+		this.currentTime = Tuio.Time.fromTime(ttime);
 		this.startTime = Tuio.Time.fromTime(this.currentTime);
 	},
 
@@ -21,7 +45,7 @@ Tuio.Point = Tuio.Model.extend({
 		this.yPos = tpoint.getY();
 	},
 
-	updateToTimeAndPosition: function(ttime, xp, yp) {
+	updateToTime: function(ttime, xp, yp) {
 		this.xPos = xp;
 		this.yPos = yp;
 		this.currentTime = Tuio.Time.fromTime(ttime);
@@ -86,14 +110,21 @@ Tuio.Point = Tuio.Model.extend({
 		return Tuio.Time.fromTime(this.startTime);
 	}
 }, {
-	fromPoint: function(tpoint) {
-		return new Tuio.Point(tpoint.getX(), tpoint.getY());
+	fromPosition: function(xp, yp) {
+		var point = new Tuio.Point();
+		point.initializeFromPosition(xp, yp);
+		return point;
 	},
 
-	fromTimeAndPosition: function(ttime, xp, yp) {
-		var point = new Tuio.Point(xp, yp);
-		point.currentTime = Tuio.Time.fromTime(ttime);
-		point.startTime = Tuio.Time.fromTime(point.currentTime);
+	fromPoint: function(tpoint) {
+		var point = new Tuio.Point();
+		point.initializeFromPoint(tpoint);
+		return point;
+	},
+
+	fromTime: function(ttime, xp, yp) {
+		var point = new Tuio.Point();
+		point.initializeFromTime(ttime, xp, yp);
 		return point;
 	}
 });
