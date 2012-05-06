@@ -9,7 +9,7 @@ $(document).ready(function() {
         }
     });
 
-    test("constructor", function() {
+    test("construct", function() {
         var object = new Tuio.Object({
             sym: 2,
             a: Math.PI
