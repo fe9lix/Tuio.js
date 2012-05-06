@@ -46,7 +46,7 @@ Tuio.Client = Tuio.Model.extend({
 			});
 			this.connected = true;
 		} catch (e) {
-			console.log("Tuio.Client: failed to connect to port ", port);
+			console.log("Tuio.Client: failed to connect to port ", this.port);
 			this.connected = false;
 		}
 	}

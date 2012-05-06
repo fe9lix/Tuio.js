@@ -18,7 +18,7 @@ Tuio.Object = Tuio.Container.extend({
         Tuio.Container.prototype.update.call(this, params);
 
         if (
-            params.hasOwnProperty("rs") && 
+            params.hasOwnProperty("rs") &&
             params.hasOwnProperty("ra")) {
 
             this.angle = params.a;
@@ -26,7 +26,7 @@ Tuio.Object = Tuio.Container.extend({
             this.rotationAccel = params.ra;
         } else {
             var diffTime = this.currentTime.subtractTime(lastPoint.getTuioTime()),
-            dt = diffTime.getTotalMilliseconds() / 1000;
+            dt = diffTime.getTotalMilliseconds() / 1000,
             lastAngle = this.angle,
             lastRotationSpeed = this.rotationSpeed;
             this.angle = params.a;
@@ -36,7 +36,7 @@ Tuio.Object = Tuio.Container.extend({
                 da -= 1;
             } else if (da < -0.75) {
                 da += 1;
-            } 
+            }
             
             this.rotationSpeed = da / dt;
             this.rotationAccel = (this.rotationSpeed - lastRotationSpeed) / dt;
@@ -56,16 +56,16 @@ Tuio.Object = Tuio.Container.extend({
     },
 
     updateObjectState: function() {
-        if ((this.rotationAccel != 0) && (this.state !== Tuio.Object.TUIO_STOPPED)) {
+        if ((this.rotationAccel !== 0) && (this.state !== Tuio.Object.TUIO_STOPPED)) {
             this.state = Tuio.Object.TUIO_ROTATING;
         }
     },
 
     stop: function(ttime) {
         this.update({
-            ttime: ttime, 
-            xp: this.xPos, 
-            yp: this.yPos, 
+            ttime: ttime,
+            xp: this.xPos,
+            yp: this.yPos,
             a: this.angle
         });
     },
@@ -92,7 +92,7 @@ Tuio.Object = Tuio.Container.extend({
 
     isMoving: function() {
         return (
-            (this.state === Tuio.Object.TUIO_ACCELERATING) || 
+            (this.state === Tuio.Object.TUIO_ACCELERATING) ||
             (this.state === Tuio.Object.TUIO_DECELERATING) ||
             (this.state === Tuio.Object.TUIO_ROTATING)
         );
@@ -102,7 +102,7 @@ Tuio.Object = Tuio.Container.extend({
 
     fromObject: function(tobj) {
         return new Tuio.Object({
-            xp: tobj.getX(), 
+            xp: tobj.getX(),
             yp: tobj.getY(),
             si: tobj.getSessionID(),
             sym: tobj.getSymbolId(),

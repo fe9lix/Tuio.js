@@ -59,11 +59,11 @@ Tuio.Point = Tuio.Model.extend({
         return this.getAngle(tpoint.getX(), tpoint.getY());
     },
 
-    getAngleDegrees: function(xp, yp) {     
+    getAngleDegrees: function(xp, yp) {
         return (this.getAngle(xp, yp) / Math.PI) * 180;
     },
 
-    getAngleDegreesToPoint: function(tpoint) {      
+    getAngleDegreesToPoint: function(tpoint) {
         return (this.getAngleToPoint(tpoint) / Math.PI) * 180;
     },
 
@@ -85,7 +85,7 @@ Tuio.Point = Tuio.Model.extend({
 }, {
     fromPoint: function(tpoint) {
         return new Tuio.Point({
-            xp: tpoint.getX(), 
+            xp: tpoint.getX(),
             yp: tpoint.getY()
         });
     }

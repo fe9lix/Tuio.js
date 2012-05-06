@@ -11,10 +11,10 @@ $(document).ready(function() {
 
     test("construct", function() {
         var cursor = new Tuio.Cursor({
-            ttime: new Tuio.Time(), 
+            ttime: new Tuio.Time(),
             si: 1,
-            ci: 5, 
-            xp: 10, 
+            ci: 5,
+            xp: 10,
             yp: 20
         });
 
@@ -32,12 +32,12 @@ $(document).ready(function() {
 
     test("fromCursor", function() {
        var cursor1 = new Tuio.Cursor({
-            ttime: new Tuio.Time(), 
+            ttime: new Tuio.Time(),
             si: 1,
-            ci: 5, 
-            xp: 10, 
+            ci: 5,
+            xp: 10,
             yp: 20
-        });
+        }),
 
         cursor2 = Tuio.Cursor.fromCursor(cursor1);
 

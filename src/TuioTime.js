@@ -29,8 +29,8 @@ Tuio.Time = Tuio.Model.extend({
         
         if (usec < 0) {
             usec += 1000000;
-            sec--;
-        }   
+            sec = sec - 1;
+        }
         
         return new Tuio.Time(sec, usec);
     },
@@ -41,7 +41,7 @@ Tuio.Time = Tuio.Model.extend({
 
         if (usec < 0) {
             usec += 1000000;
-            sec--;
+            sec = sec - 1;
         }
         
         return new Tuio.Time(sec, usec);
@@ -49,7 +49,7 @@ Tuio.Time = Tuio.Model.extend({
 
     equals: function(ttime) {
         return (
-            (this.seconds === ttime.getSeconds()) && 
+            (this.seconds === ttime.getSeconds()) &&
             (this.microSeconds === ttime.getMicroseconds())
         );
     },
@@ -69,7 +69,7 @@ Tuio.Time = Tuio.Model.extend({
 
     getTotalMilliseconds: function() {
         return this.seconds * 1000 + Math.floor(this.microSeconds / 1000);
-    }   
+    }
 }, {
     startSeconds: 0,
     startMicroSeconds: 0,
@@ -100,7 +100,7 @@ Tuio.Time = Tuio.Model.extend({
 
     getStartTime: function() {
         return new Tuio.Time(
-            Tuio.Time.startSeconds, 
+            Tuio.Time.startSeconds,
             Tuio.Time.startMicroSeconds
         );
     },

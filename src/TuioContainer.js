@@ -16,7 +16,7 @@ Tuio.Container = Tuio.Point.extend({
         this.motionSpeed = 0;
         this.motionAccel = 0;
         this.path = [new Tuio.Point({
-            ttime: this.currentTime, 
+            ttime: this.currentTime,
             xp: this.xPos,
             yp: this.yPos
         })];
@@ -28,15 +28,15 @@ Tuio.Container = Tuio.Point.extend({
         Tuio.Point.prototype.update.call(this, params);
         
         if (
-            params.hasOwnProperty("xs") && 
-            params.hasOwnProperty("ys") && 
+            params.hasOwnProperty("xs") &&
+            params.hasOwnProperty("ys") &&
             params.hasOwnProperty("ma")) {
 
             this.xSpeed = params.xs;
             this.ySpeed = params.ys;
             this.motionSpeed = Math.sqrt(this.xSpeed * this.xSpeed + this.ySpeed * this.ySpeed);
             this.motionAccel = params.ma;
-        } else {    
+        } else {
             var diffTime = this.currentTime.subtractTime(lastPoint.getTuioTime()),
             dt = diffTime.getTotalMilliseconds() / 1000,
             dx = this.xPos - lastPoint.getX(),
@@ -50,7 +50,7 @@ Tuio.Container = Tuio.Point.extend({
             this.motionAccel = (this.motionSpeed - lastMotionSpeed) / dt;
         }
         
-        this.updatePathAndState(); 
+        this.updatePathAndState();
     },
 
     updateContainer: function(tcon) {
@@ -66,8 +66,8 @@ Tuio.Container = Tuio.Point.extend({
 
     updatePathAndState: function() {
         this.path.push(new Tuio.Point({
-            ttime: this.currentTime, 
-            xp: this.xPos, 
+            ttime: this.currentTime,
+            xp: this.xPos,
             yp: this.yPos
         }));
 
@@ -82,8 +82,8 @@ Tuio.Container = Tuio.Point.extend({
 
     stop: function(ttime) {
         this.update({
-            ttime: ttime, 
-            xp: this.xPos, 
+            ttime: ttime,
+            xp: this.xPos,
             yp: this.yPos
         });
     },
@@ -127,7 +127,7 @@ Tuio.Container = Tuio.Point.extend({
 
     isMoving: function() {
         return (
-            (this.state === Tuio.Container.TUIO_ACCELERATING) || 
+            (this.state === Tuio.Container.TUIO_ACCELERATING) ||
             (this.state === Tuio.Container.TUIO_DECELERATING)
         );
     }
@@ -140,7 +140,7 @@ Tuio.Container = Tuio.Point.extend({
 
     fromContainer: function(tcon) {
         return new Tuio.Container({
-            xp: tcon.getX(), 
+            xp: tcon.getX(),
             yp: tcon.getY(),
             si: tcon.getSessionID()
         });

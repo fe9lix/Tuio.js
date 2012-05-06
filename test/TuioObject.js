@@ -36,7 +36,7 @@ $(document).ready(function() {
 
         object.update({
             ttime: new Tuio.Time(25, 0),
-            xp: 0, 
+            xp: 0,
             yp: 25,
             a: Math.PI
         });

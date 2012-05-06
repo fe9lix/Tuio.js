@@ -1,12 +1,11 @@
-(function() {
+(function(root) {
     // Initial Setup and extend/inherits taken from Backbone.js
-    // Comments removed, formatting changed. 
+    // Comments removed, formatting changed.
     // See Backbone.js source for original version.
 
-    var root = this,
-    previousTuio = root.Tuio,
+    var previousTuio = root.Tuio,
     Tuio,
-    _ = root._
+    _ = root._,
 
     extend = function (protoProps, classProps) {
         var child = inherits(this, protoProps, classProps);
@@ -14,7 +13,7 @@
         return child;
     },
 
-    ctor = function() {
+    Ctor = function() {
 
     },
 
@@ -31,8 +30,8 @@
 
         _.extend(child, parent);
 
-        ctor.prototype = parent.prototype;
-        child.prototype = new ctor();
+        Ctor.prototype = parent.prototype;
+        child.prototype = new Ctor();
 
         if (protoProps) {
             _.extend(child.prototype, protoProps);
@@ -71,4 +70,4 @@
     };
 
     Tuio.Model.extend = extend;
-}).call(this);
+}(this));

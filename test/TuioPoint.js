@@ -19,7 +19,7 @@ $(document).ready(function() {
     test("initialize with time and position", function() {
         var point = new Tuio.Point({
             ttime: new Tuio.Time(2, 5000),
-            xp: 10, 
+            xp: 10,
             yp: 20
         });
 

@@ -11,8 +11,8 @@ $(document).ready(function() {
 
     test("initialize with session id and position", function() {
         var container = new Tuio.Container({
-            si: 1, 
-            xp: 10, 
+            si: 1,
+            xp: 10,
             yp: 20
         });
 
@@ -29,15 +29,15 @@ $(document).ready(function() {
 
     test("update", function() {
         var container = new Tuio.Container({
-            ttime: new Tuio.Time(0, 0), 
-            si: 1, 
-            xp: 0, 
+            ttime: new Tuio.Time(0, 0),
+            si: 1,
+            xp: 0,
             yp: 0
         });
 
         container.update({
-            ttime: new Tuio.Time(2, 0), 
-            xp: 50, 
+            ttime: new Tuio.Time(2, 0),
+            xp: 50,
             yp: 0
         });
 
@@ -51,8 +51,8 @@ $(document).ready(function() {
         equal(container.getTuioState(), Tuio.Container.TUIO_ACCELERATING);
 
         container.update({
-            ttime: new Tuio.Time(3, 0), 
-            xp: 60, 
+            ttime: new Tuio.Time(3, 0),
+            xp: 60,
             yp: 0
         });
 
@@ -61,17 +61,17 @@ $(document).ready(function() {
 
     test("update with velocity and acceleration", function() {
         var container = new Tuio.Container({
-            ttime: new Tuio.Time(0, 0), 
-            si: 1, 
-            xp: 0, 
+            ttime: new Tuio.Time(0, 0),
+            si: 1,
+            xp: 0,
             yp: 0
         });
 
         container.update({
             ttime: new Tuio.Time(2, 0),
-            xp: 50, 
+            xp: 50,
             yp: 0,
-            xs: 25, 
+            xs: 25,
             ys: 0,
             ma: 12.5
         });
@@ -88,14 +88,14 @@ $(document).ready(function() {
     test("stop", function() {
         var container = new Tuio.Container({
             ttime: new Tuio.Time(0, 0),
-            si: 1, 
-            xp: 0, 
+            si: 1,
+            xp: 0,
             yp: 0
         });
 
         container.update({
             ttime: new Tuio.Time(2, 0),
-            xp: 50, 
+            xp: 50,
             yp: 0
         });
 
@@ -109,7 +109,7 @@ $(document).ready(function() {
 
     test("remove", function() {
         var container = new Tuio.Container({
-            si: 1, 
+            si: 1,
             xp: 10,
             yp: 20
         });
@@ -123,8 +123,8 @@ $(document).ready(function() {
     test("isMoving", function() {
         var container = new Tuio.Container({
             ttime: new Tuio.Time(0, 0),
-            si: 1, 
-            xp: 0, 
+            si: 1,
+            xp: 0,
             yp: 0
         });
 

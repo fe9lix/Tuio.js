@@ -15,7 +15,7 @@ Tuio.Cursor = Tuio.Container.extend({
         return new Tuio.Cursor({
             si: tcur.getSessionId(),
             ci: tcur.getCursorId(),
-            xp: tcur.getX(), 
+            xp: tcur.getX(),
             yp: tcur.getY()
         });
     }
