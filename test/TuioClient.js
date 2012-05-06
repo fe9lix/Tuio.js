@@ -10,8 +10,10 @@ $(document).ready(function() {
     });
 
     test("construct", function() {
-        var client = new Tuio.Client({});
+        var client = new Tuio.Client({
+            host: "http://localhost:5000"
+        });
 
-        equal(client.port, 3333);
+        equal(client.host, "http://localhost:5000");
     });
 });
