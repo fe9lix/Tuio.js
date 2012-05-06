@@ -55,7 +55,6 @@ module.exports = function(grunt) {
         noarg: true,
         noempty: true,
         nonew: true,
-        plusplus: true,
         regexp: true,
         undef: true,
         trailing: true,
@@ -76,6 +75,7 @@ module.exports = function(grunt) {
       src: {
         options: this.options,
         globals: {
+          _: true,
           Tuio: true,
           io: true}
       },

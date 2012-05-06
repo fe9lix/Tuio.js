@@ -13,8 +13,7 @@ module.exports = (function() {
 
     onSocketConnection = function(socket) {
         oscServer.on("message", function(msg, rinfo) {
-            console.log("TUIO message:", msg);
-            socket.emit("tuio", msg);
+            socket.emit("osc", msg);
         });
     };
 
