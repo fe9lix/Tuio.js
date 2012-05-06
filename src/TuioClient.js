@@ -1,3 +1,3 @@
-Tuio.Client = function() {
+Tuio.Client = Tuio.Model.extend({
 	
-}
+});

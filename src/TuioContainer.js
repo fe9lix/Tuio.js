@@ -1,173 +1,148 @@
 Tuio.Container = Tuio.Point.extend({
-	sessionId: null,
-	xSpeed: null,
-	ySpeed: null,
-	motionSpeed: null,
-	motionAccel: null,
-	path: null,
-	state: null,
+    sessionId: null,
+    xSpeed: null,
+    ySpeed: null,
+    motionSpeed: null,
+    motionAccel: null,
+    path: null,
+    state: null,
 
-	initialize: function() {
+    initialize: function(params) {
+        Tuio.Point.prototype.initialize.call(this, params);
 
-	},
+        this.sessionId = params.si;
+        this.xSpeed = 0;
+        this.ySpeed = 0;
+        this.motionSpeed = 0;
+        this.motionAccel = 0;
+        this.path = [new Tuio.Point({
+            ttime: this.currentTime, 
+            xp: this.xPos,
+            yp: this.yPos
+        })];
+        this.state = Tuio.Container.TUIO_ADDED;
+    },
 
-	initializeFromPosition: function(si, xp, yp) {
-		Tuio.Point.prototype.initializeFromPosition.call(this, xp, yp);
-		this.initializeContainer(si);
-	},
+    update: function(params) {
+        var lastPoint = this.path[this.path.length - 1];
+        Tuio.Point.prototype.update.call(this, params);
+        
+        if (
+            params.hasOwnProperty("xs") && 
+            params.hasOwnProperty("ys") && 
+            params.hasOwnProperty("ma")) {
 
-	initializeFromTime: function(ttime, si, xp, yp) {
-		Tuio.Point.prototype.initializeFromTime.call(this, ttime, xp, yp);
-		this.initializeContainer(si);
-	},
+            this.xSpeed = params.xs;
+            this.ySpeed = params.ys;
+            this.motionSpeed = Math.sqrt(this.xSpeed * this.xSpeed + this.ySpeed * this.ySpeed);
+            this.motionAccel = params.ma;
+        } else {    
+            var diffTime = this.currentTime.subtractTime(lastPoint.getTuioTime()),
+            dt = diffTime.getTotalMilliseconds() / 1000,
+            dx = this.xPos - lastPoint.getX(),
+            dy = this.yPos - lastPoint.getY(),
+            dist = Math.sqrt(dx * dx + dy * dy),
+            lastMotionSpeed = this.motionSpeed;
+            
+            this.xSpeed = dx / dt;
+            this.ySpeed = dy / dt;
+            this.motionSpeed = dist / dt;
+            this.motionAccel = (this.motionSpeed - lastMotionSpeed) / dt;
+        }
+        
+        this.updatePathAndState(); 
+    },
 
-	initializeFromContainer: function(tcon) {
-		Tuio.Point.prototype.initializeFromPoint.call(this, tcon);
-		this.initializeContainer(tcon.getSessionId());
-	},
+    updateContainer: function(tcon) {
+        Tuio.Point.prototype.updateToPoint.call(this, tcon);
 
-	initializeContainer: function(si) {
-		this.sessionId = si;
-		this.xSpeed = 0;
-		this.ySpeed = 0;
-		this.motionSpeed = 0;
-		this.motionAccel = 0;
-		this.path = [Tuio.Point.fromTime(this.currentTime, this.xPos, this.yPos)];
-		this.state = Tuio.Container.TUIO_ADDED;
-	},
+        this.xSpeed = tcon.getXSpeed();
+        this.ySpeed = tcon.getYSpeed();
+        this.motionSpeed = tcon.getMotionSpeed();
+        this.motionAccel = tcon.getMotionAccel();
 
-	update: function(ttime, xp, yp) {
-		var lastPoint = this.path[this.path.length - 1];
-		Tuio.Point.prototype.updateToTime.call(this, ttime, xp, yp);
-		
-		var diffTime = this.currentTime.subtractTime(lastPoint.getTuioTime()),
-		dt = diffTime.getTotalMilliseconds() / 1000,
-		dx = this.xPos - lastPoint.getX(),
-		dy = this.yPos - lastPoint.getY(),
-		dist = Math.sqrt(dx * dx + dy * dy),
-		lastMotionSpeed = this.motionSpeed;
-		
-		this.xSpeed = dx / dt;
-		this.ySpeed = dy / dt;
-		this.motionSpeed = dist / dt;
-		this.motionAccel = (this.motionSpeed - lastMotionSpeed) / dt;
-		
-		this.updatePathAndState(); 
-	},
+        this.updatePathAndState();
+    },
 
-	updateWithVelocityAndAcceleration: function(ttime, xp, yp, xs, ys, ma) {
-		Tuio.Point.prototype.updateToTime.call(this, ttime, xp, yp);
+    updatePathAndState: function() {
+        this.path.push(new Tuio.Point({
+            ttime: this.currentTime, 
+            xp: this.xPos, 
+            yp: this.yPos
+        }));
 
-		this.updateVelocityAndAcceleration(xs, ys, ma);
-	},
+        if (this.motionAccel > 0) {
+            this.state = Tuio.Container.TUIO_ACCELERATING;
+        } else if (this.motionAccel < 0) {
+            this.state = Tuio.Container.TUIO_DECELERATING;
+        } else {
+            this.state = Tuio.Container.TUIO_STOPPED;
+        }
+    },
 
-	updatePositionVelocityAndAcceleration: function(xp, yp, xs, ys, ma) {
-		Tuio.Point.prototype.update.call(this, xp, yp);
+    stop: function(ttime) {
+        this.update({
+            ttime: ttime, 
+            xp: this.xPos, 
+            yp: this.yPos
+        });
+    },
 
-		this.updateVelocityAndAcceleration(xs, ys, ma);
-	},
+    remove: function(ttime) {
+        this.currentTime = Tuio.Time.fromTime(ttime);
+        this.state = Tuio.Container.TUIO_REMOVED;
+    },
 
-	updateVelocityAndAcceleration: function(xs, ys, ma) {
-		this.xSpeed = xs;
-		this.ySpeed = ys;
-		this.motionSpeed = Math.sqrt(this.xSpeed * this.xSpeed + this.ySpeed * this.ySpeed);
-		this.motionAccel = ma;
+    getSessionId: function() {
+        return this.sessionId;
+    },
 
-		this.updatePathAndState();
-	},
+    getXSpeed: function() {
+        return this.xSpeed;
+    },
 
-	updateContainer: function(tcon) {
-		Tuio.Point.prototype.updateToPoint.call(this, tcon);
+    getYSpeed: function() {
+        return this.ySpeed;
+    },
 
-		this.xSpeed = tcon.getXSpeed();
-		this.ySpeed = tcon.getYSpeed();
-		this.motionSpeed = tcon.getMotionSpeed();
-		this.motionAccel = tcon.getMotionAccel();
+    getPosition: function() {
+        return new Tuio.Point(this.xPos, this.yPos);
+    },
 
-		this.updatePathAndState();
-	},
+    getPath: function() {
+        return this.path;
+    },
 
-	updatePathAndState: function() {
-		this.path.push(Tuio.Point.fromTime(this.currentTime, this.xPos, this.yPos));
+    getMotionSpeed: function() {
+        return this.motionSpeed;
+    },
 
-		if (this.motionAccel > 0) {
-			this.state = Tuio.Container.TUIO_ACCELERATING;
-		} else if (this.motionAccel < 0) {
-			this.state = Tuio.Container.TUIO_DECELERATING;
-		} else {
-			this.state = Tuio.Container.TUIO_STOPPED;
-		}
-	},
+    getMotionAccel: function() {
+        return this.motionAccel;
+    },
 
-	stop: function(ttime) {
-		this.update(ttime, this.xPos, this.yPos);
-	},
+    getTuioState: function() {
+        return this.state;
+    },
 
-	remove: function(ttime) {
-		this.currentTime = Tuio.Time.fromTime(ttime);
-		this.state = Tuio.Container.TUIO_REMOVED;
-	},
-
-	getSessionId: function() {
-		return this.sessionId;
-	},
-
-	getXSpeed: function() {
-		return this.xSpeed;
-	},
-
-	getYSpeed: function() {
-		return this.ySpeed;
-	},
-
-	getPosition: function() {
-		return new Tuio.Point(this.xPos, this.yPos);
-	},
-
-	getPath: function() {
-		return this.path;
-	},
-
-	getMotionSpeed: function() {
-		return this.motionSpeed;
-	},
-
-	getMotionAccel: function() {
-		return this.motionAccel;
-	},
-
-	getTuioState: function() {
-		return this.state;
-	},
-
-	isMoving: function() {
-		return (
-			(this.state === Tuio.Container.TUIO_ACCELERATING) || 
-			(this.state === Tuio.Container.TUIO_DECELERATING)
-		);
-	}
+    isMoving: function() {
+        return (
+            (this.state === Tuio.Container.TUIO_ACCELERATING) || 
+            (this.state === Tuio.Container.TUIO_DECELERATING)
+        );
+    }
 }, {
-	TUIO_ADDED: 0,
-	TUIO_ACCELERATING: 1,
-	TUIO_DECELERATING: 2,
-	TUIO_STOPPED: 3,
-	TUIO_REMOVED: 4,
+    TUIO_ADDED: 0,
+    TUIO_ACCELERATING: 1,
+    TUIO_DECELERATING: 2,
+    TUIO_STOPPED: 3,
+    TUIO_REMOVED: 4,
 
-	fromPosition: function(si, xp, yp) {
-		var container = new Tuio.Container();
-		container.initializeFromPosition(si, xp, yp);
-		return container;
-	},
-
-	fromTime: function(ttime, si, xp, yp) {
-		var container = new Tuio.Container();
-		container.initializeFromTime(ttime, si, xp, yp);
-		return container;
-	},
-
-	fromContainer: function(tcon) {
-		var container = new Tuio.Container();
-		container.initializeFromContainer(tcon);
-		return container;
-	}
+    fromContainer: function(tcon) {
+        return new Tuio.Container({
+            xp: tcon.getX(), 
+            yp: tcon.getY(),
+            si: tcon.getSessionID()
+        });
+    }
 });

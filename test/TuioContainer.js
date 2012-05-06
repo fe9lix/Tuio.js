@@ -9,8 +9,12 @@ $(document).ready(function() {
         }
     });
 
-    test("Container: constructor with session id, x and y position", function() {
-        var container = Tuio.Container.fromPosition(1, 10, 20);
+    test("initialize with session id and position", function() {
+        var container = new Tuio.Container({
+            si: 1, 
+            xp: 10, 
+            yp: 20
+        });
 
         equal(container.getSessionId(), 1);
         equal(container.getX(), 10);
@@ -23,10 +27,19 @@ $(document).ready(function() {
         equal(container.getTuioState(), Tuio.Container.TUIO_ADDED);
     });
 
-    test("Container: update", function() {
-        var container = Tuio.Container.fromTime(new Tuio.Time(0, 0), 1, 0, 0);
+    test("update", function() {
+        var container = new Tuio.Container({
+            ttime: new Tuio.Time(0, 0), 
+            si: 1, 
+            xp: 0, 
+            yp: 0
+        });
 
-        container.update(new Tuio.Time(2, 0), 50, 0);
+        container.update({
+            ttime: new Tuio.Time(2, 0), 
+            xp: 50, 
+            yp: 0
+        });
 
         equal(container.getX(), 50);
         equal(container.getY(), 0);
@@ -37,22 +50,31 @@ $(document).ready(function() {
         equal(container.getPath().length, 2);
         equal(container.getTuioState(), Tuio.Container.TUIO_ACCELERATING);
 
-        container.update(new Tuio.Time(3, 0), 60, 0);
+        container.update({
+            ttime: new Tuio.Time(3, 0), 
+            xp: 60, 
+            yp: 0
+        });
 
         equal(container.getTuioState(), Tuio.Container.TUIO_DECELERATING);
     });
 
-    test("Container: updateWithVelocityAndAcceleration", function() {
-        var container = Tuio.Container.fromTime(new Tuio.Time(0, 0), 1, 0, 0);
+    test("update with velocity and acceleration", function() {
+        var container = new Tuio.Container({
+            ttime: new Tuio.Time(0, 0), 
+            si: 1, 
+            xp: 0, 
+            yp: 0
+        });
 
-        container.updateWithVelocityAndAcceleration(
-            new Tuio.Time(2, 0),
-            50, 
-            0,
-            25, 
-            0,
-            12.5
-        );
+        container.update({
+            ttime: new Tuio.Time(2, 0),
+            xp: 50, 
+            yp: 0,
+            xs: 25, 
+            ys: 0,
+            ma: 12.5
+        });
 
         equal(container.getX(), 50);
         equal(container.getY(), 0);
@@ -63,10 +85,19 @@ $(document).ready(function() {
         equal(container.getTuioState(), Tuio.Container.TUIO_ACCELERATING);
     });
 
-    test("Container: stop", function() {
-        var container = Tuio.Container.fromTime(new Tuio.Time(0, 0), 1, 0, 0);
+    test("stop", function() {
+        var container = new Tuio.Container({
+            ttime: new Tuio.Time(0, 0),
+            si: 1, 
+            xp: 0, 
+            yp: 0
+        });
 
-        container.update(new Tuio.Time(2, 0), 50, 0);
+        container.update({
+            ttime: new Tuio.Time(2, 0),
+            xp: 50, 
+            yp: 0
+        });
 
         container.stop(new Tuio.Time(3, 0));
 
@@ -76,8 +107,12 @@ $(document).ready(function() {
         equal(container.getTuioState(), Tuio.Container.TUIO_DECELERATING);
     });
 
-    test("Container: remove", function() {
-        var container = Tuio.Container.fromPosition(1, 10, 20);
+    test("remove", function() {
+        var container = new Tuio.Container({
+            si: 1, 
+            xp: 10,
+            yp: 20
+        });
 
         container.remove(new Tuio.Time(2, 0));
 
@@ -85,14 +120,27 @@ $(document).ready(function() {
         ok(container.getTuioTime().equals(new Tuio.Time(2, 0)));
     });
 
-    test("Container: isMoving", function() {
-        var container = Tuio.Container.fromTime(new Tuio.Time(0, 0), 1, 0, 0);
+    test("isMoving", function() {
+        var container = new Tuio.Container({
+            ttime: new Tuio.Time(0, 0),
+            si: 1, 
+            xp: 0, 
+            yp: 0
+        });
 
-        container.update(new Tuio.Time(2, 0), 50, 0);
+        container.update({
+            ttime: new Tuio.Time(2, 0),
+            xp: 50,
+            yp: 0
+        });
 
         ok(container.isMoving());
 
-        container.update(new Tuio.Time(3, 0), 60, 0);
+        container.update({
+            ttime: new Tuio.Time(3, 0),
+            xp: 60,
+            yp: 0
+        });
 
         ok(container.isMoving());
     });

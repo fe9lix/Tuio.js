@@ -9,14 +9,14 @@ $(document).ready(function() {
         }
     });
 
-    test("Container: fromTime", function() {
-        var cursor = Tuio.Cursor.fromTime(
-            new Tuio.Time(), 
-            1,
-            5, 
-            10, 
-            20
-        );
+    test("construct", function() {
+        var cursor = new Tuio.Cursor({
+            ttime: new Tuio.Time(), 
+            si: 1,
+            ci: 5, 
+            xp: 10, 
+            yp: 20
+        });
 
         equal(cursor.getSessionId(), 1);
         equal(cursor.getCursorId(), 5);
@@ -30,14 +30,14 @@ $(document).ready(function() {
         equal(cursor.getTuioState(), Tuio.Container.TUIO_ADDED);
     });
 
-    test("Container: fromCursor", function() {
-        var cursor1 = Tuio.Cursor.fromTime(
-            new Tuio.Time(), 
-            1,
-            5, 
-            10, 
-            20
-        ),
+    test("fromCursor", function() {
+       var cursor1 = new Tuio.Cursor({
+            ttime: new Tuio.Time(), 
+            si: 1,
+            ci: 5, 
+            xp: 10, 
+            yp: 20
+        });
 
         cursor2 = Tuio.Cursor.fromCursor(cursor1);
 

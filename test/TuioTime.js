@@ -10,7 +10,7 @@ $(document).ready(function() {
         }
     });
 
-    test("Time: constructor with sec and usec", function() {
+    test("initialize with sec and usec", function() {
         var time = new Tuio.Time(100, 100000);
 
         equal(time.getSeconds(), 100);
@@ -18,7 +18,7 @@ $(document).ready(function() {
     });
 
 
-    test("Time: add few microseconds", function() {
+    test("add few microseconds", function() {
         var time = new Tuio.Time(),
         newTime = time.add(5000);
 
@@ -26,7 +26,7 @@ $(document).ready(function() {
         equal(newTime.getMicroseconds(), 5000);
     });
 
-    test("Time: add lots of microseconds", function() {
+    test("add lots of microseconds", function() {
         var time = new Tuio.Time(),
         newTime = time.add(10000000);
 
@@ -34,7 +34,7 @@ $(document).ready(function() {
         equal(newTime.getMicroseconds(), 0);
     });
 
-    test("Time: subtract time", function() {
+    test("subtract time", function() {
         var time = new Tuio.Time(100, 5000),
         newTime = time.subtractTime(new Tuio.Time(20, 1000));
         
@@ -42,7 +42,7 @@ $(document).ready(function() {
         equal(newTime.getMicroseconds(), 4000);
     });
 
-    test("Time: equals", function() {
+    test("equals", function() {
         var time1 = new Tuio.Time.fromMilliseconds(2000),
         time2 = new Tuio.Time.fromMilliseconds(2000);
         
@@ -50,7 +50,7 @@ $(document).ready(function() {
         equal(time1.getTotalMilliseconds(), time2.getTotalMilliseconds());
     });
 
-    test("Time: reset", function() {
+    test("reset", function() {
         var time = new Tuio.Time.fromMilliseconds(10000);
         time.reset();
         
@@ -59,7 +59,7 @@ $(document).ready(function() {
         equal(time.getTotalMilliseconds(), 0);
     });
 
-    test("Time: getSessionTime", function() {
+    test("getSessionTime", function() {
         var systemTime = Tuio.Time.getSystemTime(),
         startTime = Tuio.Time.getStartTime(),
         sessionTime = Tuio.Time.getSessionTime(),
