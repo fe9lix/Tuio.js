@@ -3,7 +3,7 @@
 Tuio.js is a JavaScript implementation of the [TUIO library](http://www.tuio.org) for multitouch and tangible interaction in the web browser. It aims to be a 1:1 port of the original TUIO Java library. 
 
 ### How it works
-TUIO is based on the [OSC protocol](http://opensoundcontrol.org/) and usually transferred via UDP. Tuio.js uses node.js (the [node-osc library](https://github.com/TheAlphaNerd/node-osc) and Websockets ([Socket.io](http://socket.io/)) to push OSC/TUIO messages to the browser. TUIO.js converts the messages into events that applications can register with. Another utility translates TUIO events to standard HTML5 Touch API events + additional events for tangibles which are not part of the W3C spec.
+TUIO is based on the [OSC protocol](http://opensoundcontrol.org/) and usually transferred via UDP. Tuio.js uses node.js (the [node-osc library](https://github.com/TheAlphaNerd/node-osc)) and Websockets ([Socket.io](http://socket.io/)) to push OSC/TUIO messages to the browser. TUIO.js converts the messages into events that applications can register with. Another utility translates TUIO events to standard HTML5 Touch API events + additional events for tangibles which are not part of the W3C spec.
 
 ## Getting Started
 ### Server
@@ -29,6 +29,18 @@ onRemoveTuioCursor = function(removeCursor) {
   console.log(removeCursor);
 },
 
+onAddTuioObject = function(addObject) {
+    console.log(addObject);
+},
+
+onUpdateTuioObject = function(updateObject) {
+    console.log(updateObject);
+},
+
+onRemoveTuioObject = function(removeObject) {
+    console.log(removeObject);
+},
+
 onRefresh = function(time) {
   console.log(time);
 };
@@ -36,6 +48,9 @@ onRefresh = function(time) {
 client.on("addTuioCursor", onAddTuioCursor);
 client.on("updateTuioCursor", onUpdateTuioCursor);
 client.on("removeTuioCursor", onRemoveTuioCursor);
+client.on("addTuioObject", onAddTuioObject);
+client.on("updateTuioObject", onUpdateTuioObject);
+client.on("removeTuioObject", onRemoveTuioObject);
 client.on("refresh", onRefresh);
 client.connect();
 ```

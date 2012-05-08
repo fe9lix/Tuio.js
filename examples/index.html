@@ -26,14 +26,13 @@
             cursors = {},
 
             onAddTuioCursor = function(addCursor) {
-                console.log("onAddTuioCursor", addCursor);
                 var $addCursor = $('<div class="tuioCursor"></div>');
                 $("body").append($addCursor);
                 cursors[addCursor.getCursorId()] = $addCursor;
+                onUpdateTuioCursor(addCursor);
             },
 
             onUpdateTuioCursor = function(updateCursor) {
-                console.log("onUpdateTuioCursor", updateCursor);
                 var $updateCursor = cursors[updateCursor.getCursorId()];
                 $updateCursor.css({
                     left: updateCursor.getScreenX(screenW),
@@ -42,19 +41,33 @@
             },
 
             onRemoveTuioCursor = function(removeCursor) {
-                console.log("onRemoveTuioCursor", removeCursor);
                 var $removeCursor = cursors[removeCursor.getCursorId()];
                 $removeCursor.remove();
                 delete[removeCursor.getCursorId()];
             },
 
+            onAddTuioObject = function(addObject) {
+                console.log(addObject);
+            },
+
+            onUpdateTuioObject = function(updateObject) {
+                console.log(updateObject);
+            },
+
+            onRemoveTuioObject = function(removeObject) {
+                console.log(removeObject);
+            },
+
             onRefresh = function(time) {
-                console.log("onRefresh", time);
+                
             };
 
             client.on("addTuioCursor", onAddTuioCursor);
             client.on("updateTuioCursor", onUpdateTuioCursor);
             client.on("removeTuioCursor", onRemoveTuioCursor);
+            client.on("addTuioObject", onAddTuioObject);
+            client.on("updateTuioObject", onUpdateTuioObject);
+            client.on("removeTuioObject", onRemoveTuioObject);
             client.on("refresh", onRefresh);
             client.connect();
         });
