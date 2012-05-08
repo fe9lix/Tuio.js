@@ -16,8 +16,8 @@
   },
   "licenses": [
     {
-      "type": "MIT",
-      "url": "http://fe9lix.github.com/Tuio.js//blob/master/LICENSE-MIT"
+      "type": "GPL",
+      "url": "http://fe9lix.github.com/Tuio.js//blob/master/LICENSE-GPL"
     }
   ],
   "main": "lib/Tuio.js",
