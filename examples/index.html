@@ -13,12 +13,51 @@
 
     </div>
 
+    <script src="../libs/jquery-1.7.2.js"></script>
     <script src="../dist/Tuio.min.js"></script>
     <script>
-        var client = new Tuio.Client({
-            host: "http://localhost:5000"
+        $(function() {
+            var client = new Tuio.Client({
+                host: "http://localhost:5000"
+            }),
+            screenW = $(document).width(),
+            screenH = $(document).height()
+
+            cursors = {},
+
+            onAddTuioCursor = function(addCursor) {
+                console.log("onAddTuioCursor", addCursor);
+                var $addCursor = $('<div class="tuioCursor"></div>');
+                $("body").append($addCursor);
+                cursors[addCursor.getCursorId()] = $addCursor;
+            },
+
+            onUpdateTuioCursor = function(updateCursor) {
+                console.log("onUpdateTuioCursor", updateCursor);
+                var $updateCursor = cursors[updateCursor.getCursorId()];
+                $updateCursor.css({
+                    left: updateCursor.getScreenX(screenW),
+                    top: updateCursor.getScreenY(screenH)
+                });
+            },
+
+            onRemoveTuioCursor = function(removeCursor) {
+                console.log("onRemoveTuioCursor", removeCursor);
+                var $removeCursor = cursors[removeCursor.getCursorId()];
+                $removeCursor.remove();
+                delete[removeCursor.getCursorId()];
+            },
+
+            onRefresh = function(time) {
+                console.log("onRefresh", time);
+            };
+
+            client.on("addTuioCursor", onAddTuioCursor);
+            client.on("updateTuioCursor", onUpdateTuioCursor);
+            client.on("removeTuioCursor", onRemoveTuioCursor);
+            client.on("refresh", onRefresh);
+            client.connect();
         });
-        client.connect();
     </script>
 </body>
 </html>

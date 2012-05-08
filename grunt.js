@@ -58,6 +58,7 @@ module.exports = function(grunt) {
         regexp: true,
         undef: true,
         trailing: true,
+        boss: true,
         browser: true,
         jquery: true,
         node: true

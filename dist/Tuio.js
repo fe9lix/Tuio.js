@@ -1,4 +1,4 @@
-/*! Tuio.js - v0.0.1 - 2012-05-06
+/*! Tuio.js - v0.0.1 - 2012-05-08
 * http://fe9lix.github.com/Tuio.js/
 * Copyright (c) 2012 Felix Raab; Licensed MIT */
 
@@ -6223,25 +6223,136 @@
 );
 
 (function(root) {
-    // Initial Setup and extend/inherits taken from Backbone.js
-    // Comments removed, formatting changed.
-    // See Backbone.js source for original version.
+    // Initial Setup, events mixin and extend/inherits taken from Backbone.js
+    // See Backbone.js source for original version and comments.
 
-    var previousTuio = root.Tuio,
-    Tuio,
-    _ = root._,
+    var previousTuio = root.Tuio;
 
-    extend = function (protoProps, classProps) {
+    var slice = Array.prototype.slice;
+    var splice = Array.prototype.splice;
+
+    var Tuio;
+    if (typeof exports !== "undefined") {
+        Tuio = exports;
+    } else {
+        Tuio = root.Tuio = {};
+    }
+
+    Tuio.VERSION = "0.0.1";
+
+    var _ = root._;
+
+    if (!_ && (typeof require !== "undefined")) {
+        _ = require("lodash");
+    }
+
+    Tuio.noConflict = function() {
+        root.Tuio = previousTuio;
+        return this;
+    };
+
+    var eventSplitter = /\s+/;
+
+    var Events = Tuio.Events = {
+        on: function(events, callback, context) {
+            var calls, event, node, tail, list;
+            if (!callback) {
+                return this;
+            }
+            events = events.split(eventSplitter);
+            calls = this._callbacks || (this._callbacks = {});
+
+            while (event = events.shift()) {
+                list = calls[event];
+                node = list ? list.tail : {};
+                node.next = tail = {};
+                node.context = context;
+                node.callback = callback;
+                calls[event] = {tail: tail, next: list ? list.next : node};
+            }
+
+            return this;
+        },
+
+        off: function(events, callback, context) {
+            var event, calls, node, tail, cb, ctx;
+
+            if (!(calls = this._callbacks)) {
+                return;
+            }
+            if (!(events || callback || context)) {
+                delete this._callbacks;
+                return this;
+            }
+
+            events = events ? events.split(eventSplitter) : _.keys(calls);
+            while (event = events.shift()) {
+                node = calls[event];
+                delete calls[event];
+                if (!node || !(callback || context)) {
+                    continue;
+                }
+                tail = node.tail;
+                while ((node = node.next) !== tail) {
+                    cb = node.callback;
+                    ctx = node.context;
+                    if ((callback && cb !== callback) || (context && ctx !== context)) {
+                        this.on(event, cb, ctx);
+                    }
+                }
+            }
+
+          return this;
+        },
+
+        trigger: function(events) {
+            var event, node, calls, tail, args, all, rest;
+            if (!(calls = this._callbacks)) {
+                return this;
+            }
+            all = calls.all;
+            events = events.split(eventSplitter);
+            rest = slice.call(arguments, 1);
+
+            while (event = events.shift()) {
+                if (node = calls[event]) {
+                    tail = node.tail;
+                    while ((node = node.next) !== tail) {
+                        node.callback.apply(node.context || this, rest);
+                    }
+                }
+                if (node = all) {
+                    tail = node.tail;
+                    args = [event].concat(rest);
+                    while ((node = node.next) !== tail) {
+                        node.callback.apply(node.context || this, args);
+                    }
+                }
+            }
+
+            return this;
+        }
+    };
+
+    var Model = Tuio.Model = function() {
+        this.initialize.apply(this, arguments);
+    };
+
+    _.extend(Model.prototype, Events);
+
+    var extend = function (protoProps, classProps) {
         var child = inherits(this, protoProps, classProps);
         child.extend = this.extend;
         return child;
-    },
+    };
 
-    Ctor = function() {
+    Tuio.Model.extend = extend;
 
-    },
+    var Ctor = function() {
 
-    inherits = function(parent, protoProps, staticProps) {
+    };
+
+    var inherits = function(parent, protoProps, staticProps) {
         var child;
 
         if (protoProps && protoProps.hasOwnProperty("constructor")) {
@@ -6271,29 +6382,6 @@
 
         return child;
     };
-
-    if (typeof exports !== "undefined") {
-        Tuio = exports;
-    } else {
-        Tuio = root.Tuio = {};
-    }
-
-    Tuio.VERSION = "0.0.1";
-
-    if (!_ && (typeof require !== "undefined")) {
-        _ = require("lodash");
-    }
-
-    Tuio.noConflict = function() {
-        root.Tuio = previousTuio;
-        return this;
-    };
-
-    Tuio.Model = function() {
-        this.initialize.apply(this, arguments);
-    };
-
-    Tuio.Model.extend = extend;
 }(this));
 Tuio.Time = Tuio.Model.extend({
     seconds: 0,
@@ -6930,14 +7018,193 @@ Tuio.Client = Tuio.Model.extend({
 	},
 
 	cursorSet: function(args) {
-		console.log("cursorSet", args);
+		var sid = args[0],
+		xPos = args[1],
+		yPos = args[2],
+		xSpeed = args[3],
+		ySpeed = args[4],
+		mAccel = args[5];
+
+		if (_.has(this.cursorList, sid)) {
+			var tcur = this.cursorList[sid];
+			if (!tcur) {
+				return;
+			}
+			if (
+				(tcur.xPos !== xPos) ||
+				(tcur.yPos !== yPos) ||
+				(tcur.xSpeed !== xSpeed) ||
+				(tcur.ySpeed !== ySpeed ) ||
+				(tcur.motionAccel !== mAccel)) {
+
+				var updateCursor = new Tuio.Cursor({
+					si: sid,
+					ci: tcur.getCursorId(),
+					xp: xPos,
+					yp: yPos
+				});
+				updateCursor.update({
+					xp: xPos,
+					yp: yPos,
+					xs: xSpeed,
+					ys: ySpeed,
+					ma: mAccel
+				});
+				this.frameCursors.push(updateCursor);
+			}
+		} else {
+			var addCursor = new Tuio.Cursor({
+				si: sid,
+				ci: -1,
+				xp: xPos,
+				yp: yPos
+			});
+			this.frameCursors.push(addCursor);
+		}
 	},
 
 	cursorAlive: function(args) {
-		console.log("cursorAlive", args);
+		var removeCursor = null;
+		this.newCursorList = args;
+		this.aliveCursorList = _.difference(this.aliveCursorList, args);
+
+		for (var i = 0, max = this.aliveCursorList.length; i < max; i++) {
+			removeCursor = this.cursorList[this.aliveCursorList[i]];
+			if (removeCursor) {
+				removeCursor.remove(this.currentTime);
+				this.frameCursors.push(removeCursor);
+			}
+		}
 	},
 
 	cursorFseq: function(args) {
-		console.log("cursorFseq", args);
+		var fseq = args[0],
+		lateFrame = false,
+		tcur = null,
+		removeCursor = null;
+
+		if (fseq > 0) {
+			if (fseq > this.curentFrame) {
+				this.currentTime = Tuio.Time.getSessionTime();
+			}
+			if ((fseq >= this.currentFrame) || ((this.currentFrame - fseq) > 100)) {
+				this.currentFrame = fseq;
+			} else {
+				lateFrame = true;
+			}
+		} else if (Tuio.Time.getSessionTime().subtractTime(this.currentTime).getTotalMilliseconds() > 100) {
+			this.currentTime = Tuio.Time.getSessionTime();
+		}
+
+		if (!lateFrame) {
+			for (var i = 0, max = this.frameCursors.length; i < max; i++) {
+				tcur = this.frameCursors[i];
+				switch (tcur.getTuioState()) {
+					case Tuio.Cursor.TUIO_REMOVED:
+						this.tuioRemoved(tcur);
+						break;
+					case Tuio.Cursor.TUIO_ADDED:
+						this.tuioAdded(tcur);
+						break;
+					default:
+						this.tuioDefault(tcur);
+						break;
+				}
+			}
+
+			this.trigger("refresh", Tuio.Time.fromTime(this.currentTime));
+
+			var buffer = this.aliveCursorList;
+			this.aliveCursorList = this.newCursorList;
+			this.newCursorList = buffer;
+		}
+
+		this.frameCursors = [];
+	},
+
+	tuioRemoved: function(tcur) {
+		var removeCursor = tcur;
+		removeCursor.remove(this.currentTime);
+
+		this.trigger("removeTuioCursor", removeCursor);
+
+		delete this.cursorList[removeCursor.getSessionId()];
+
+		if (removeCursor.getCursorId() === this.maxCursorId) {
+			this.maxCursorId = -1;
+			if (_.size(this.cursorList) > 0) {
+				var maxCursor = _.max(this.cursorList, function(cur) {
+					return cur.getCursorId();
+				});
+				if (maxCursor.getCursorId() > this.maxCursorId) {
+					this.maxCursorId = maxCursor.getCursorId();
+				}
+
+				this.freeCursorList = _.without(this.freeCursorList, function(cur) {
+					return cur.getCursorId() >= this.maxCursorId;
+				});
+			} else {
+				this.freeCursorList = [];
+			}
+		} else if (removeCursor.getCursorId() < this.maxCursorId) {
+			this.freeCursorList.push(removeCursor);
+		}
+	},
+
+	tuioAdded: function(tcur) {
+		var cid = _.size(this.cursorList),
+		testCursor = null;
+
+		if ((cid <= this.maxCursorId) && (this.freeCursorList.length > 0)) {
+			var closestCursor = this.freeCursorList[0];
+			for (var i = 0, max = this.freeCursorList.length; i < max; i++) {
+				testCursor = this.freeCursorList[i];
+				if (testCursor.getDistanceToPoint(tcur) < closestCursor.getDistanceToPoint(tcur)) {
+					closestCursor = testCursor;
+				}
+			}
+			cid = closestCursor.getCursorId();
+			this.freeCursorList = _.without(this.freeCursorList, function(cur) {
+				return cur.getCursorId() === cid;
+			});
+		} else {
+			this.maxCursorId = cid;
+		}
+
+		var addCursor = new Tuio.Cursor({
+			ttime: this.currentTime,
+			si: tcur.getSessionId(),
+			ci: cid,
+			xp: tcur.getX(),
+			yp: tcur.getY()
+		});
+		this.cursorList[addCursor.getSessionId()] = addCursor;
+
+		this.trigger("addTuioCursor", addCursor);
+	},
+
+	tuioDefault: function(tcur) {
+		var updateCursor = this.cursorList[tcur.getSessionId()];
+		if (
+			(tcur.getX() !== updateCursor.getX() && tcur.getXSpeed() === 0) ||
+			(tcur.getY() !== updateCursor.getY() && tcur.getYSpeed() === 0)) {
+
+			updateCursor.update({
+				ttime: this.currentTime,
+				xp: tcur.getX(),
+				yp: tcur.getY()
+			});
+		} else {
+			updateCursor.update({
+				ttime: this.currentTime,
+				xp: tcur.getX(),
+				yp: tcur.getY(),
+				xs: tcur.getXSpeed(),
+				ys: tcur.getYSpeed(),
+				ma: tcur.getMotionAccel()
+			});
+		}
+		
+		this.trigger("updateTuioCursor", updateCursor);
 	}
 });

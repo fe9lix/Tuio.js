@@ -7,3 +7,12 @@ body {
 	height: 600px;
 	width: 800px;
 }
+
+.tuioCursor {
+	background: #fff;
+	height: 45px;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 45px;
+}
