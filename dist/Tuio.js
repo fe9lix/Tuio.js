@@ -1,6 +1,6 @@
 /*! Tuio.js - v0.0.1 - 2012-05-08
 * http://fe9lix.github.com/Tuio.js/
-* Copyright (c) 2012 Felix Raab; Licensed MIT */
+* Copyright (c) 2012 Felix Raab; Licensed GPL */
 
 /*!
  * Lo-Dash v0.1.0 <https://github.com/bestiejs/lodash>
