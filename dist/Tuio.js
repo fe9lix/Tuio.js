@@ -1,4 +1,4 @@
-/*! Tuio.js - v0.0.1 - 2012-05-08
+/*! Tuio.js - v0.0.1 - 2012-05-09
 * http://fe9lix.github.com/Tuio.js/
 * Copyright (c) 2012 Felix Raab; Licensed GPL */
 
@@ -6922,10 +6922,12 @@ Tuio.Client = Tuio.Model.extend({
     onConnect: function() {
         this.socket.on("osc", this.acceptBundle);
         this.connected = true;
+        this.trigger("connect");
     },
 
     onDisconnect: function() {
         this.connected = false;
+        this.trigger("disconnect");
     },
 
     isConnected: function() {

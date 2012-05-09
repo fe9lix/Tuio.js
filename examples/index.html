@@ -9,10 +9,6 @@
     <link rel="stylesheet" href="res/css/examples.css">
 </head>
 <body>
-    <div class="example">
-
-    </div>
-
     <script src="../libs/jquery-1.7.2.js"></script>
     <script src="../dist/Tuio.min.js"></script>
     <script>
@@ -24,6 +20,10 @@
             screenH = $(document).height()
 
             cursors = {},
+
+            onConnect = function() {
+                console.log("onConnect");
+            },
 
             onAddTuioCursor = function(addCursor) {
                 var $addCursor = $('<div class="tuioCursor"></div>');
@@ -62,6 +62,7 @@
                 
             };
 
+            client.on("connect", onConnect);
             client.on("addTuioCursor", onAddTuioCursor);
             client.on("updateTuioCursor", onUpdateTuioCursor);
             client.on("removeTuioCursor", onRemoveTuioCursor);

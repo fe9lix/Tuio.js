@@ -1,11 +1,6 @@
 body {
 	background: #000;
-}
-
-#example {
-	border: 1px solid #fff;
-	height: 600px;
-	width: 800px;
+	margin: 0;
 }
 
 .tuioCursor {
