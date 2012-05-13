@@ -30,7 +30,7 @@
   "dependencies": {
     "express": "2.5.9",
     "socket.io": "0.9.6",
-    "node-osc": "0.1.2"
+    "jspack": "0.0.1"
   },
   "devDependencies": {
     "grunt": "~0.3.9"

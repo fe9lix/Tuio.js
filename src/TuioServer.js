@@ -1,19 +1,27 @@
 module.exports = (function() {
-    var socketio = require("socket.io"),
-    osc = require("node-osc"),
+    var dgram = require("dgram"),
+    udpSocket = null,
+    socketio = require("socket.io"),
     io = null,
-    oscServer = null,
+    oscParser = require("./OscParser"),
 
     init = function(params) {
-        oscServer = new osc.Server(params.oscPort, params.oscHost);
+        udpSocket = dgram.createSocket("udp4");
+        udpSocket.on("listening", onSocketListening);
+        udpSocket.bind(params.oscPort, params.oscHost);
 
         io = socketio.listen(params.socketPort);
         io.sockets.on("connection", onSocketConnection);
     },
 
+    onSocketListening = function() {
+        var address = udpSocket.address();
+        console.log("server listening on: " + address.address + ":" + address.port);
+    },
+
     onSocketConnection = function(socket) {
-        oscServer.on("message", function(msg, rinfo) {
-            socket.emit("osc", msg);
+        udpSocket.on("message", function(msg) {
+            socket.emit("osc", oscParser.decode(msg));
         });
     };
 

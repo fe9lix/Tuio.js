@@ -65,20 +65,155 @@
         }
       }
     },
-    "node-osc": {
-      "version": "0.1.2",
+    "jspack": {
+      "version": "0.0.1"
+    },
+    "grunt": {
+      "version": "0.3.9",
       "dependencies": {
-        "jspack": {
-          "version": "0.0.1"
+        "async": {
+          "version": "0.1.18"
         },
-        "osc-min": {
-          "version": "0.0.5",
+        "colors": {
+          "version": "0.6.0-1"
+        },
+        "connect": {
+          "version": "1.8.7",
           "dependencies": {
-            "binpack": {
-              "version": "0.0.7"
+            "qs": {
+              "version": "0.5.0"
             },
-            "coffee-script": {
-              "version": "1.3.0"
+            "mime": {
+              "version": "1.2.5"
+            },
+            "formidable": {
+              "version": "1.0.9"
+            }
+          }
+        },
+        "dateformat": {
+          "version": "1.0.2-1.2.3"
+        },
+        "glob-whatev": {
+          "version": "0.1.6",
+          "dependencies": {
+            "minimatch": {
+              "version": "0.2.4",
+              "dependencies": {
+                "lru-cache": {
+                  "version": "1.0.6"
+                }
+              }
+            }
+          }
+        },
+        "hooker": {
+          "version": "0.2.3"
+        },
+        "jshint": {
+          "version": "0.5.9",
+          "dependencies": {
+            "argsparser": {
+              "version": "0.0.6"
+            },
+            "minimatch": {
+              "version": "0.2.4",
+              "dependencies": {
+                "lru-cache": {
+                  "version": "1.0.6"
+                }
+              }
+            }
+          }
+        },
+        "nodeunit": {
+          "version": "0.6.4",
+          "dependencies": {
+            "tap-assert": {
+              "version": "0.0.10"
+            },
+            "tap-producer": {
+              "version": "0.0.1",
+              "dependencies": {
+                "inherits": {
+                  "version": "1.0.0"
+                },
+                "tap-results": {
+                  "version": "0.0.2"
+                },
+                "yamlish": {
+                  "version": "0.0.5"
+                }
+              }
+            }
+          }
+        },
+        "nopt": {
+          "version": "1.0.10",
+          "dependencies": {
+            "abbrev": {
+              "version": "1.0.3"
+            }
+          }
+        },
+        "prompt": {
+          "version": "0.1.12",
+          "dependencies": {
+            "pkginfo": {
+              "version": "0.2.3"
+            },
+            "winston": {
+              "version": "0.5.11",
+              "dependencies": {
+                "eyes": {
+                  "version": "0.1.7"
+                },
+                "loggly": {
+                  "version": "0.3.11",
+                  "dependencies": {
+                    "request": {
+                      "version": "2.9.202"
+                    },
+                    "timespan": {
+                      "version": "2.2.0"
+                    }
+                  }
+                },
+                "stack-trace": {
+                  "version": "0.0.6"
+                }
+              }
+            }
+          }
+        },
+        "semver": {
+          "version": "1.0.13"
+        },
+        "uglify-js": {
+          "version": "1.0.7"
+        },
+        "underscore": {
+          "version": "1.2.4"
+        },
+        "underscore.string": {
+          "version": "2.1.1"
+        },
+        "temporary": {
+          "version": "0.0.2",
+          "dependencies": {
+            "package": {
+              "version": "1.0.0"
+            }
+          }
+        },
+        "gzip-js": {
+          "version": "0.3.1",
+          "dependencies": {
+            "crc32": {
+              "version": "0.2.2"
+            },
+            "deflate-js": {
+              "version": "0.2.2"
             }
           }
         }

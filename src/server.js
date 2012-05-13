@@ -7,6 +7,6 @@ app.listen(5000);
 
 tuioServer.init({
 	oscPort: 3333,
-	oscHost: "localhost",
+	oscHost: "0.0.0.0",
 	socketPort: app
 });
