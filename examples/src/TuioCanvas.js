@@ -11,6 +11,7 @@ TuioCanvas.Main = (function() {
     time = null,
     canvas = null,
     context = null,
+    objSize = 50,
 
     init = function() {
         screenW = $(document).width();
@@ -39,7 +40,8 @@ TuioCanvas.Main = (function() {
     draw = function() {
         requestAnimationFrame(draw);
 
-        canvas.width = canvas.width;
+        context.fillStyle = "#000000";
+        context.fillRect(0, 0, canvas.width, canvas.height);
 
         var cursors = client.getTuioCursors(),
         objects = client.getTuioObjects();
@@ -55,28 +57,30 @@ TuioCanvas.Main = (function() {
 
     drawCursor = function(cursor) {
         context.fillStyle = "#009fe3";
+        context.beginPath();
         context.arc(
             cursor.getScreenX(screenW),
             cursor.getScreenY(screenH),
-            25,
+            objSize * 0.5,
             0,
             Math.PI * 2
         );
+        context.closePath();
         context.fill();
     },
 
     drawObject = function(object) {
         context.save();
-        context.translate(object.getScreenX(screenW), object.getScreenY(screenH));
-        context.rotate(object.getAngle());
-        context.fillStyle = "#ffffff";
-        context.fillRect(
-            0,
-            0,
-            50,
-            50
+
+        context.translate(
+            object.getScreenX(screenW) + objSize * 0.5, 
+            object.getScreenY(screenH) + objSize * 0.5
         );
-        context.fill();
+        context.rotate(object.getAngle());
+
+        context.fillStyle = "#ffffff";
+        context.fillRect(-objSize * 0.5, -objSize * 0.5, objSize, objSize);
+
         context.restore();
     };
 
