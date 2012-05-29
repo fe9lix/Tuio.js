@@ -14,8 +14,8 @@ TuioCanvas.Main = (function() {
     objSize = 50,
 
     init = function() {
-        screenW = $(document).width();
-        screenH = $(document).height();
+        screenW = $(window).innerWidth();
+        screenH = $(window).innerHeight();
         time = new Date().getTime();
         canvas = $("#tuioCanvas").get(0);
         canvas.width = screenW;

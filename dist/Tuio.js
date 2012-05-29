@@ -1,4 +1,4 @@
-/*! Tuio.js - v0.0.1 - 2012-05-14
+/*! Tuio.js - v0.0.1 - 2012-05-29
 * http://fe9lix.github.com/Tuio.js/
 * Copyright (c) 2012 Felix Raab; Licensed GPL */
 
