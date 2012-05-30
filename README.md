@@ -7,8 +7,13 @@ TUIO is based on the [OSC protocol](http://opensoundcontrol.org/) and usually tr
 
 ## Getting Started
 ### Server
-Start the node server (modify server port in server.js if necessary):
-node src/server.js
+*Install the server via npm:*  
+npm install tuio  
+(or: put the node_modules/tuio folder into your node_modules folder)
+
+*Start the example server*  
+node src/server.js  
+(Modify server port in server.js if necessary. You also need to npm install [express](https://github.com/visionmedia/express) for the example server to work.)
 
 ### Client
 Include dist/Tuio.min.js

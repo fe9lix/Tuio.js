@@ -1,4 +1,6 @@
 .DS_Store
 *.sublime-project
 *.sublime-workspace
-node_modules
+!node_modules
+node_modules/*
+!node_modules/tuio
