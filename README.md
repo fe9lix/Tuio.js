@@ -3,20 +3,24 @@
 Tuio.js is a JavaScript implementation of the [TUIO library](http://www.tuio.org) for multitouch and tangible interaction in the web browser. It brings a 1:1 port of the original [TUIO Java library](http://www.tuio.org/?java). 
 
 ### How it works
-TUIO is based on the [OSC protocol](http://opensoundcontrol.org/) and usually transferred via UDP. Tuio.js uses node.js and Websockets ([Socket.io](http://socket.io/)) to push OSC/TUIO messages to the browser. TUIO.js converts the messages to events that applications can register with.
+TUIO is based on the [OSC protocol](http://opensoundcontrol.org/) and usually transferred via UDP. Tuio.js uses node.js and Websockets ([Socket.IO](http://socket.io/)) to push OSC/TUIO messages to the browser. TUIO.js converts the messages to events that applications can register with.
 
 ## Getting Started
 ### Server
-*Install the server via npm:*  
-npm install tuio  
-(or: put the node_modules/tuio folder into your node_modules folder)
+**Install the server via npm:**  
+```
+npm install tuio
+```
+(or put the node_modules/tuio folder into your node_modules folder)
 
-*Start the example server*  
-node src/server.js  
+**Start the example server:**  
+```
+node src/server.js
+```
 (Modify server port in server.js if necessary. You also need to npm install [express](https://github.com/visionmedia/express) for the example server to work.)
 
 ### Client
-Include dist/Tuio.min.js
+Include dist/Tuio.min.js in your HTML page.
 
 ```javascript
 var client = new Tuio.Client({
