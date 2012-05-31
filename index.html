@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Tuio.js by fe9lix</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/fe9lix/Tuio.js">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/fe9lix/Tuio.js/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/fe9lix/Tuio.js/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Tuio.js</h1>
+          <p>TUIO Reference Implementation for JavaScript</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/fe9lix">fe9lix</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>Tuio.js</h1>
+
+<p>Tuio.js is a JavaScript implementation of the <a href="http://www.tuio.org">TUIO library</a> for multitouch and tangible interaction in the web browser. It brings a 1:1 port of the original <a href="http://www.tuio.org/?java">TUIO Java library</a>. </p>
+
+<h3>How it works</h3>
+
+<p>TUIO is based on the <a href="http://opensoundcontrol.org/">OSC protocol</a> and usually transferred via UDP. Tuio.js uses node.js and Websockets (<a href="http://socket.io/">Socket.IO</a>) to push OSC/TUIO messages to the browser. TUIO.js converts the messages to events that applications can register with.</p>
+
+<h2>Getting Started</h2>
+
+<h3>Server</h3>
+
+<p><strong>Install the server via npm:</strong>  </p>
+
+<pre><code>npm install tuio
+</code></pre>
+
+<p>(or put the node_modules/tuio folder into your node_modules folder)</p>
+
+<p><strong>Start the example server:</strong>  </p>
+
+<pre><code>node src/server.js
+</code></pre>
+
+<p>(Modify server port in server.js if necessary. You also need to npm install <a href="https://github.com/visionmedia/express">express</a> for the example server to work.)</p>
+
+<h3>Client</h3>
+
+<p>Include dist/Tuio.min.js in your HTML page.</p>
+
+<div class="highlight">
+<pre><span class="kd">var</span> <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Tuio</span><span class="p">.</span><span class="nx">Client</span><span class="p">({</span>
+    <span class="nx">host</span><span class="o">:</span> <span class="s2">"http://localhost:5000"</span>
+<span class="p">}),</span>
+
+<span class="nx">onAddTuioCursor</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">addCursor</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">addCursor</span><span class="p">);</span>
+<span class="p">},</span>
+
+<span class="nx">onUpdateTuioCursor</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">updateCursor</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">updateCursor</span><span class="p">);</span>
+<span class="p">},</span>
+
+<span class="nx">onRemoveTuioCursor</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">removeCursor</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">removeCursor</span><span class="p">);</span>
+<span class="p">},</span>
+
+<span class="nx">onAddTuioObject</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">addObject</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">addObject</span><span class="p">);</span>
+<span class="p">},</span>
+
+<span class="nx">onUpdateTuioObject</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">updateObject</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">updateObject</span><span class="p">);</span>
+<span class="p">},</span>
+
+<span class="nx">onRemoveTuioObject</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">removeObject</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">removeObject</span><span class="p">);</span>
+<span class="p">},</span>
+
+<span class="nx">onRefresh</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">time</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">time</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"addTuioCursor"</span><span class="p">,</span> <span class="nx">onAddTuioCursor</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"updateTuioCursor"</span><span class="p">,</span> <span class="nx">onUpdateTuioCursor</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"removeTuioCursor"</span><span class="p">,</span> <span class="nx">onRemoveTuioCursor</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"addTuioObject"</span><span class="p">,</span> <span class="nx">onAddTuioObject</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"updateTuioObject"</span><span class="p">,</span> <span class="nx">onUpdateTuioObject</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"removeTuioObject"</span><span class="p">,</span> <span class="nx">onRemoveTuioObject</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"refresh"</span><span class="p">,</span> <span class="nx">onRefresh</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">connect</span><span class="p">();</span>
+</pre>
+</div>
+
+
+<h2>Documentation</h2>
+
+<p>The API is modeled after the <a href="http://www.tuio.org/?java">TUIO Java library</a>. Also see the source and examples on how to use the library. In most cases, you probably only need some events (addTuioCursor, removeTuioObject, etc.) or the methods client.getTuioCursors() and client.getTuioObjects().</p>
+
+<h2>Examples</h2>
+
+<p><em>See examples folder</em></p>
+
+<h2>Contributing</h2>
+
+<p>In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using <a href="https://github.com/cowboy/grunt">grunt</a>.</p>
+
+<h2>License</h2>
+
+<p>Licensed under the GPL license.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
