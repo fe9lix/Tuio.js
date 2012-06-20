@@ -1,0 +1,14 @@
+{
+  "name": "Tuio.js",
+  "version": "0.0.1",
+  "homepage": "http://fe9lix.github.com/Tuio.js/",
+  "author": {
+    "name": "Felix Raab"
+  },
+  "licenses": [
+    {
+      "type": "GPL",
+      "url": "http://fe9lix.github.com/Tuio.js//blob/master/LICENSE-GPL"
+    }
+  ]
+}

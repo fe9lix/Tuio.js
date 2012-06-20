@@ -17,8 +17,6 @@ module.exports = function(grunt) {
       dist: {
         src: [
           "<banner:meta.banner>",
-          "libs/lodash.js",
-          "libs/socket.io.js",
           "src/Tuio.js",
           "src/TuioTime.js",
           "src/TuioPoint.js",
