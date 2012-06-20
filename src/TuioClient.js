@@ -147,7 +147,7 @@ Tuio.Client = Tuio.Model.extend({
        if (!_.has(this.objectList, sid)) {
             var addObject = new Tuio.Object({
                 si: sid,
-                ci: -1,
+                sym: cid,
                 xp: xPos,
                 yp: yPos,
                 a: angle
@@ -170,7 +170,7 @@ Tuio.Client = Tuio.Model.extend({
 
                 var updateObject = new Tuio.Object({
                     si: sid,
-                    ci: cid,
+                    sym: cid,
                     xp: xPos,
                     yp: yPos,
                     a: angle
