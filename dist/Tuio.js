@@ -1,4 +1,4 @@
-/*! Tuio.js - v0.0.1 - 2012-06-20
+/*! Tuio.js - v0.0.1 - 2012-10-14
 * http://fe9lix.github.com/Tuio.js/
 * Copyright (c) 2012 Felix Raab; Licensed GPL */
 
@@ -865,7 +865,7 @@ Tuio.Client = Tuio.Model.extend({
         tobj = null;
 
         if (fseq > 0) {
-            if (fseq > this.curentFrame) {
+            if (fseq > this.currentFrame) {
                 this.currentTime = Tuio.Time.getSessionTime();
             }
             if ((fseq >= this.currentFrame) || ((this.currentFrame - fseq) > 100)) {
@@ -1018,7 +1018,7 @@ Tuio.Client = Tuio.Model.extend({
         tcur = null;
 
         if (fseq > 0) {
-            if (fseq > this.curentFrame) {
+            if (fseq > this.currentFrame) {
                 this.currentTime = Tuio.Time.getSessionTime();
             }
             if ((fseq >= this.currentFrame) || ((this.currentFrame - fseq) > 100)) {
