@@ -287,7 +287,7 @@ Tuio.Point = Tuio.Model.extend({
 
     initialize: function(params) {
         this.xPos = params.xp || 0;
-        this.yPos = params.yp || 0;
+        this.yPos = params.yp || 0;
         this.currentTime = Tuio.Time.fromTime(params.ttime || Tuio.Time.getSessionTime());
         this.startTime = Tuio.Time.fromTime(this.currentTime);
     },
