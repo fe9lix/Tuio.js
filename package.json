@@ -10,5 +10,9 @@
       "type": "GPL",
       "url": "http://fe9lix.github.com/Tuio.js//blob/master/LICENSE-GPL"
     }
-  ]
+  ],
+  "dependencies": {
+    "tuio": "~1.0.0",
+    "express": "2.5.9"
+  }
 }
